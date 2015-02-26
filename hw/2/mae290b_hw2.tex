@@ -1,0 +1,478 @@
+\documentclass[11pt]{article}
+
+%% WRY has commented out some unused packages %%
+%% If needed, activate these by uncommenting
+\usepackage{geometry}                % See geometry.pdf to learn the layout options. There are lots.
+%\geometry{letterpaper}                   % ... or a4paper or a5paper or ... 
+\geometry{a4paper,left=2.5cm,right=2.5cm,top=2.5cm,bottom=2.5cm}
+%\geometry{landscape}                % Activate for rotated page geometry
+%\usepackage[parfill]{parskip}    % Activate to begin paragraphs with an empty line rather than an indent
+
+%for figures
+%\usepackage{graphicx}
+
+\usepackage{color}
+\definecolor{mygreen}{RGB}{28,172,0} % color values Red, Green, Blue
+\definecolor{mylilas}{RGB}{170,55,241}
+%% for graphics this one is also OK:
+\usepackage{epsfig}
+
+%% AMS mathsymbols are enabled with
+\usepackage{amssymb,amsmath}
+
+%% more options in enumerate
+\usepackage{enumerate}
+\usepackage{enumitem}
+
+%% insert code
+\usepackage{listings}
+
+\usepackage[utf8]{inputenc}
+
+\usepackage{hyperref}
+
+
+% Default fixed font does not support bold face
+\DeclareFixedFont{\ttb}{T1}{txtt}{bx}{n}{12} % for bold
+\DeclareFixedFont{\ttm}{T1}{txtt}{m}{n}{12}  % for normal
+
+% Custom colors
+\usepackage{color}
+\definecolor{deepblue}{rgb}{0,0,0.5}
+\definecolor{deepred}{rgb}{0.6,0,0}
+\definecolor{deepgreen}{rgb}{0,0.5,0}
+
+
+% Python style for highlighting
+\newcommand\pythonstyle{\lstset{
+language=Python,
+basicstyle=\ttm,
+otherkeywords={self},             % Add keywords here
+keywordstyle=\ttb\color{deepblue},
+emph={MyClass,__init__},          % Custom highlighting
+emphstyle=\ttb\color{deepred},    % Custom highlighting style
+stringstyle=\color{deepgreen},
+frame=tb,                         % Any extra options here
+showstringspaces=false            % 
+}}
+
+% Python environment
+\lstnewenvironment{python}[1][]
+{
+\pythonstyle
+\lstset{#1}
+}
+{}
+
+% Python for external files
+\newcommand\pythonexternal[2][]{{
+\pythonstyle
+\lstinputlisting[#1]{#2}}}
+
+% Python for inline
+\newcommand\pythoninline[1]{{\pythonstyle\lstinline!#1!}}
+
+%\usepackage{epstopdf}
+%\DeclareGraphicsRule{.tif}{png}{.png}{`convert #1 `dirname #1`/`basename #1 .tif`.png}
+
+%% To save typing, create some shortcuts
+\newcommand{\ord}{\mbox{ord}}
+\newcommand{\Ai}{\mbox{Ai}}
+\newcommand{\Bi}{\mbox{Bi}}
+\newcommand{\half}{\tfrac{1}{2}}
+\newcommand{\defn}{\stackrel{\text{def}}{=}}
+%% Use Roman font for special numbers and differentials:
+\newcommand{\ii}{\mathrm{i}}
+\newcommand{\dd}{\mathrm{d}}
+\newcommand{\ee}{\mathrm{e}}
+
+\newcommand{\noi}{\noindent}
+
+\def\beq{\begin{equation}}
+\def\eeq{\end{equation}}
+
+
+%% stop typing all of epsilon and delta
+\newcommand{\ep}{\ensuremath {\epsilon}}
+\newcommand{\de}{\ensuremath {\delta}}
+
+%% colors
+\usepackage{graphicx,xcolor,lipsum}
+
+
+\usepackage{mathtools}
+
+\usepackage{graphicx}
+\newcommand*{\matminus}{%
+  \leavevmode
+  \hphantom{0}%
+  \llap{%
+    \settowidth{\dimen0 }{$0$}%
+    \resizebox{1.1\dimen0 }{\height}{$-$}%
+  }%
+}
+
+
+\title{MAE290B, Homework Assignment 2\footnote{This homework assignment was coded and developed using a Jupyter Notebook. An html version of the notebook is available at \href{http://nbviewer.ipython.org/url/www-pord.ucsd.edu/~crocha/notebooks/mae290b_hw2.ipynb}{http://nbviewer.ipython.org/url/www-pord.ucsd.edu/$\sim$crocha/notebooks/mae290b$\_$hw2.ipynb}}}
+\author{Cesar B Rocha}
+%\date{October 16th, 2014}                                           
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section*{Problem 1 }
+
+\begin{enumerate}[label=(\alph*)]
+
+    \item We code a simple module with two functions to solve an initial value problem. The function \texttt{my$\_$ode} integrates a system of ODEs for an arbitrary right-hand-side(RHS) given by the function $F$. It calls the function \texttt{stepforward} to step the system forward (one time step). We also implement an explicit Euler scheme, but third order Runge-Kutta is default. 
+
+\begin{lstlisting}[language=Python]
+def my_ode(F,X0,t0,tf,dt,scheme='rk3'):
+
+    '''
+    Integrates dX/dt = F(X,t), where X and F 
+    are N-dimensional arrays using RK3. 
+    - t0/tf : initial/final time
+    - X0 : initial value
+    - dt : time step
+    returns solution (X) and time array (t)
+    '''
+    try:
+        N=X0.size
+    except AttributeError:
+        N=1
+    
+    t = np.arange(t0,tf+dt,dt)
+    X = np.zeros((N,t.size))
+    X[:,0] = X0
+    
+    for i in range(1,t.size):
+        X[:,i] = stepforward(X[:,i-1],F,t[i-1],dt,scheme)
+        
+    return X,t
+
+def stepforward(X,F,t,dt,scheme='rk3'):
+
+    '''
+    It steps forward a system of first-order ODEs using
+    dX/dt = F(X,t), where X and F are N-dimensional
+    arrays.
+
+    NOTE: nly Explicit Euler (EE) and third-order 
+        Runge-Kutta (RK3) schemes are implemented
+    '''
+    if scheme=='rk3':
+        f1 = F(X,t)
+        a1 = 8/15.
+        X1 = X + dt*a1*f1
+        f2 = F(X1,t+a1*dt)
+        a2 = 2/3.
+        X2 = X + dt*a2*f2
+        f3 = F(X2,t+a2*dt)
+        Xnew = X + dt/4.*(f1+3.*f3)
+    elif scheme=='ee':
+        Xnew = X + dt*F(X,t)
+            
+    return Xnew
+\end{lstlisting}
+
+To test the code developed in item (a), insprired by Homework Assigment 1, we devise a simple system of ODEs with available exact solution. The system is
+
+    \begin{align}
+        \label{system1}
+        d x/dt = \sin (t), \nonumber \\
+        d y/dt = \sin (2 t), \nonumber \\
+        d z/dt = \sin (3 t),
+    \end{align}
+    subject to $[x,y,z]_{t = 0} = [0,0,0]$. The exact solution to \eqref{system1} is
+
+    \begin{align}
+        x = 1 - \cos (t), \nonumber \\
+        y = [1 - \cos (2 t)]/2, \nonumber \\
+        z = [1-\cos (3 t)]/3.
+    \end{align}
+
+We use the code in item (a) to solve this system, and compare the solution with the exact one. A simple function to generate the ``F'' array to input into the \texttt{my$\_$ode} was coded:
+
+\begin{lstlisting}[language=Python]
+def func3(x,t,omg1=1.,omg2=2.,omg3=3.):
+    '''
+    A function array to a test problem
+    '''
+    x = np.zeros(3)
+    x[0],x[1],x[2] = np.sin(omg1*t),np.sin(omg2*t),np.sin(omg3*t)
+    return x
+\end{lstlisting}
+
+We integrate \eqref{system1} from time 0 to 1000 with time step. The solution over a period is shown in Figure \ref{soln_system1} (for $\Delta t = 1.25$ experiment). We readily see that while the order of accuracy of the system is the same, the accuracy itself varies depending on the frequency of the forcing. To assess the order of accuracy of the code we compute the absolute error
+
+\beq
+Error = <(|x_{num}-x_e|^3 + |y_{num}-y_e|^3 + |z_{num}-z_e|^3)^{1/3}>,
+\eeq
+where $x_e$ and $x_{num}$ are the exact and numerical values of $x$, etc. Notice that $< >$ denotes time averaging. We compute the numerical solution for various time steps ($\Delta t$) and plot the $Error$ against $\Delta t$ in a $log_{10}\times\log_{10}$ plot (Figure \ref{error}). The is clearly a function of $(\Delta t)^3$, as seen by the straight line with slope 3 in $log_10$ space; this verifies the accuracy of the code/scheme. Notice that for time steps larger than $~3$ the error appears to grow more rapidly; the scheme becomes unstable and the  numerical solution wildely differs from the exact one.
+
+
+
+\begin{figure}[h]
+\centerline{\epsfig{file=example_of_solution_rk3_code.png,width=12cm}}
+\caption{Solution to \eqref{system1} over one period. Dashed lines are the exact solutions and dots are the discrete numerical solutions using RK3.}
+    \label{soln_system1}
+\end{figure}
+
+\begin{figure}[h]
+\centerline{\epsfig{file=asses_accuracy_rk3_code.png,width=12cm}}
+\caption{Absolute error in numerical solution to \eqref{system1} as a function of time step. For details, see text.}
+    \label{error}
+\end{figure}
+
+\item We code a simple function to evaluate the right-hand side of the Lorenz System. We solve the Lorenz system with $\rho = 20$, $\sigma = 10$, and $\beta = 8/3$ from time 0 to 25. We use a time step $\Delta t = 0.01$. Note that for these set of parameter, the RK3 is stable for much larger $\Delta t$; we made this choice to direct compare against the solution in item (c). The solution time series shows that oscillations about some values (Figure \ref{lorenz_ts_1}); the amplitude of the oscillations decay with time. This can also be seen in the phase plane (Figure \ref{lorenz_phase_1}), where the solutions spiral-in towards those particular values.
+
+\begin{lstlisting}[language=Python]
+def func_lorenz(X,t,rho=20,sigma=10.,beta=8/3.):
+    '''
+    Function (RHS) of the Lo
+    renz system
+    X and F are 3 by 1 arrays.
+    '''
+    F = np.zeros(X.size)
+    F[0] = sigma*(X[1]-X[0])
+    F[1] = rho*X[0] - X[1] - X[0]*X[2]
+    F[2] = -beta*X[2] + X[0]*X[1]
+    
+    return F
+\end{lstlisting}
+
+\begin{figure}[p]
+\centerline{\epsfig{file=lorenz_rho20_time-series.png,width=12cm}}
+\caption{Time series for solution to Lorenz System with $\rho = 20$.}
+    \label{lorenz_ts_1}
+\end{figure}
+ 
+\begin{figure}[p]
+\centerline{\epsfig{file=lorenz_rho20_phase.png,width=12cm}}
+\caption{Phase diagrams for solution to Lorenz System with $\rho = 20$.}
+    \label{lorenz_phase_1}
+\end{figure}
+    
+\item Repeating item (b) changing $\rho=20$ with  $\rho=28$ produces a wildly different solution. The solution now has increasing amplitude in the beginning but then the oscillatitions vary beteween different values with chaotic behavious (Figure \ref{lorenz_ts_2}); there's no clear periodicity as far as these big changes are concerned. This is illustrated in the phase diagrams (Figures \ref{lorenz_phase_2} and \ref{lorenz_phase_2_3d}) where the solution initially spirals-out from specific values and suddenly starts oscillating about other values. The solution then changes from one ``attractor'' to the other with no clear periodicity. (A video showing the evolution of the solution in a phase diagram is available at \href{http://www-pord.ucsd.edu/~crocha/videos.html}{http://www-pord.ucsd.edu/$\sim$crocha/videos.html}.) With this set of parameters, the Lorenz System is chaotic.
+
+    \begin{figure}[p]
+\centerline{\epsfig{file=lorenz_rho28_time-series.png,width=12cm}}
+\caption{Time series for solution to Lorenz System with $\rho = 28$.}
+    \label{lorenz_ts_2}
+\end{figure}
+ 
+\begin{figure}[p]
+\centerline{\epsfig{file=lorenz_rho28_phase.png,width=12cm}}
+\caption{Phase diagrams for solution to Lorenz System with $\rho = 28$.}
+    \label{lorenz_phase_2}
+\end{figure}
+
+ 
+\begin{figure}[p]
+\centerline{\epsfig{file=lorenz_rho28_phase_3d.png,width=12cm}}
+\caption{Three-dimensional phase diagram for solution to Lorenz System with $\rho = 28$.}
+    \label{lorenz_phase_2_3d}
+\end{figure}
+
+\item To assess the sensitivity of the solution to time step size we recompute the solution in item  (c) with $\Delta t = 0.005$ and compare it with the precious solution (Figure \ref{comp}). The solutions are visually indistinguishable for times smaller than 15, but diverge for larger times. These deprtures do not to seem to be merely a phase shift. For instance, the time spent in a given attractor becomes different. The long term solution does not converge with decreasing time step. Using $\Delta t = 0.0025$ again produces a different solution for times larger than 15.
+
+\begin{figure}[p]
+\centerline{\epsfig{file=lorenz_rho28_x_time-series.png,width=12cm}}
+\caption{Time series for solution to Lorenz System with $\rho = 28$ and different time steps.}
+    \label{comp}
+\end{figure}
+
+
+\end{enumerate}        
+
+
+
+\newpage
+\section*{Problem 2}
+
+\begin{enumerate}[label=(\alph*)]
+
+    \item The steady-state solution ($\dot C^s_1 = \dot C^s_2 = \dot C^s_3 = 0$), we solve
+
+        \begin{align}
+            -k_1 C^s_1 + k_2 C^s_2 C^s_3 = 0 \nonumber\\
+            k_1 C^s_1 - k_2 C^s_2 C^s_3 - 2 k_3 (C^s_2)^2 0 \nonumber\\
+            2k_3 (C^s_2)^2 =0,
+        \end{align}    
+        where the superscript $s$ denotes steady-state solution. From the last two equations we find $\boxed{C^s_2 = C^s_1 = 0}$. $C^s_3$ is not determined from the first equation. Instead, we use conservation of mass:
+
+        \begin{align}
+        C^s_1 + C^s_2 + C^s_3 = 1,   
+        \end{align} 
+        from which we conclude that $\boxed{C^s_3 = 1}$.
+
+    \item Before we even compute the Jacobin or solve the system, we expect the system to be stiff. Clearly, the element $C_2$ is strongly damped, while $C_1$ is only moderately damped. $C_3$ on the other hand increases with time, and we expect that the long-term solution will be dominated by this element, consistent with the steady-state solution in item (a). The jacobian matrix ($\partial f_i/\partial C_j$) is
+
+    \beq
+    \label{jacobian_matrix_chem}
+    \mathsf{J}(t) = 
+    \begin{bmatrix*}
+        -k_1 & 0 & k_2C_2 \\
+        k_1 & -4k_3C_2 & -k_2C_2  \\
+        0 & 4k_3C_2  & 0 \\
+    \end{bmatrix*}.
+    \eeq
+In particular,
+
+    \beq
+    \label{jacobian_matrix_chem_0}
+    \mathsf{J}(0) = 
+    \begin{bmatrix*}
+        -4.0\ee-02 &  0.0\ee+00 & 1.0\ee+00\\
+        4.0\ee-02 & -6.0\ee+02  & -1.0\ee+00\\
+        0.0\ee+00 &  6.0\ee+02  & 0.0\ee+00\\
+    \end{bmatrix*},
+    \eeq
+    whose eigenvalue are $[-5.98998261\ee+02   1.77794334\ee-16  -1.04173925\ee+00]$. Clearly, the system is very stiff. The ratio of maximum eigenvalue to minimum eigenvalue is $\ord{(10^{18})}$! The stability is controlled by the maximum eigenvalue.
+
+\item We use the Python \texttt{scipy.integrate} library, which has ODE solver similar to Matlab's. We first define the function that computes the RHS of the chemical reaction system
+
+\begin{lstlisting}[language=Python]
+def func_chem(t,X,k1=0.04,k2=10.0,k3=1.5e3):
+    '''
+    Function (RHS) of the system in problem 2:
+    chemical reactions.
+    '''
+    F = np.zeros(X.size)
+    F[0] = -k1*X[0] + k2*X[1]*X[2]
+    F[1] = k1*X[0] - k2*X[1]*X[2] - 2.*k3*X[1]*X[1]
+    F[2] = 2.*k3*X[1]*X[1]
+    
+    return F
+\end{lstlisting}
+
+We then use the RK4(5) explicit scheme (similar to \texttt{ode45}) to integrate the equation. To compare performance of algorithms, we time the execution of the calculations. It takes about 37 seconds to integrate the system of equations using \texttt{ode45}. A time series of the results is shown in Figure \ref{ode45}. The stiffness of the systems is also seen in Figure \ref{ode45}; the concentration of the element 2 decreases very fast mostly associated with an increase in concentration of element 3. The exchange between elements 2 and 3 occurs at much longer scales. Eventually, the solution approaches the steady-state for large times.
+
+\begin{lstlisting}[language=Python]
+dt = .004
+times = np.arange(0.,2500,dt)
+ode45 = sp.integrate.ode(func_chem).set_integrator('dopri5')
+ode45.set_initial_value(C0, 0.)
+C = np.zeros((3,times.size))
+C[:,0] = C0
+ti = time.time()
+for i in range(1,times.size):
+    ode45.integrate(ode45.t+dt)
+    C[:,i] = ode45.y
+etime = time.time()-ti
+print "ode45 integration executed in "  + str(etime) + " s"
+[out] ode45 integration executed in 36.8139798641 s
+\end{lstlisting}
+
+
+\begin{figure}[p]
+\centerline{\epsfig{file=concentration_time-series_ode45.png,width=12cm}}
+\caption{Time series of concentration of chemicals from numerical solution with \texttt{ode45}.}
+    \label{ode45}
+\end{figure}
+
+\item We repeat item (c) using an integrator for stiff systems. It takes about 8 seconds to integrate the system using \texttt{ode23s}, much faster than  \texttt{ode45}. The solution is visually identical to that in item (c) (Figure \ref{ode23s}).
+
+\begin{lstlisting}[language=Python]
+ode23s = sp.integrate.ode(func_chem).set_integrator('vode',\
+method='bdf', order=23)
+ode23s.set_initial_value(C0, 0.)
+Cs = np.zeros((3,times.size))
+Cs[:,0] = C0
+ti = time.time()
+for i in range(1,times.size):
+    ode23s.integrate(ode23s.t+dt)
+    Cs[:,i] = ode23s.y
+etime = time.time()-ti
+print "ode23s integration executed in "  + str(etime) + " s"
+[out] ode23s integration executed in 6.7750108242 s
+\end{lstlisting}
+
+\begin{figure}[p]
+\centerline{\epsfig{file=concentration_time-series_ode23s.png,width=12cm}}
+\caption{Time series of concentration of chemicals from numerical solution with \texttt{ode23s}.}
+    \label{ode23s}
+\end{figure}
+
+\item We repeat item (c) using the RK3 code developed in problem 1. It takes about 25 seconds to run \texttt{my$\_$ode}. It is faster than \texttt{ode45} since is lower order, and therefore performs less function evaluations per time step. The solution is very similar to items (c) and (d) (Figure \ref{myode}), except at the very first time steps (the decay in \texttt{my$\_$ode} is not as smooth as \texttt{oder45} because it is less accurate).  
+
+
+\begin{lstlisting}[language=Python]
+ti = time.time()
+Cmy,tmy = my_ode(func_chem,C0,0.,2500,dt,scheme='rk3')
+etime = time.time()-ti
+print "my_ode integration executed in "  + str(etime) + " s"
+[out] my_ode integration executed in 25.0895102024 s
+\end{lstlisting}
+
+  To increase the performance of the code we can evaluate the Jacobian matrix at every step, and then set the time step based on the maximum eigenvalue. For RK3 the stability requirement is
+    \beq
+        \Delta t \leq \frac{2.51}{|\lambda_{max}|}.
+    \eeq
+    Because the system is non-linear, it is better to be conservative in setting $\Delta t$. We then set $\Delta t$ to be 75$\%$ of the maximum time step. We change \texttt{my$\_$ode} to  \texttt{my$\_$odes}, which takes the jacobian into account. 
+
+
+\begin{lstlisting}[language=Python]
+def my_odes(F,J,X0,t0,tf,dt,scheme='rk3'):
+    
+    '''
+    Integrates dX/dt = F(X,t), where X and F 
+    are N-dimensional arrays using RK3. 
+    J is the jacobian of F used to estimate
+    the time step.
+    - t0/tf : initial/final time
+    - X0 : initial value
+    - dt : time step
+    
+    returns solution (X) and time array (t)
+                                        '''
+    try:
+        N=X0.size
+    except AttributeError:
+        N=1
+    
+    X,Xold = X0,X0
+    t,time = t0,t0
+    i = 0
+    
+    while time <= tf:   
+        Jt = J(Xold)
+        lam = np.linalg.eigvals(Jt)
+        lam_abs = np.abs(lam)
+        dt = 0.75*(2.51/lam_abs.max())
+        Xold = stepforward(Xold,F,time,dt,scheme)
+        X = np.concatenate((X,Xold),axis=0)
+        
+        time = time + dt
+        t = np.append(t,time)
+
+    # reshape to  C0.size by t.size    
+    X = X.reshape(X.size/C0.size,C0.size).T
+        
+    return X,t
+\end{lstlisting}
+
+We then repeat item the integration of the system. It takes less than 2 seconds to compute the solution! This piece of code outperforms \texttt{my$\_$ode} and other canned codes we used before. The time step is initially less than $0.004$ but once the fast part of the solution has decayed, it becomes larger and larger; the final time step is $\sim 0.18$. Figure \ref{myode} compare the solution with \texttt{my$\_$ode} with  \texttt{my$\_$odes}. The solution with fixed small $\Delta t$ is obviously more accurate, but the differences between the solutions are only visible in a zoom-in of the solution for few time steps (Figure \ref{myodes}).
+
+\begin{lstlisting}[language=Python]
+ti = time.time()
+Cmys,tmys = my_odes(func_chem,jacob_chem,C0,0.,2500,dt,scheme='rk3')
+etime = time.time()-ti
+print "my_odes integration executed in "  + str(etime) + " s"
+[out] integration executed in 1.77355098724 s
+\end{lstlisting}
+
+
+\begin{figure}[h]
+\centerline{\epsfig{file=concentration_time-series_myode_myodes.png,width=12cm}}
+\caption{Time series of concentration of chemicals from numerical solution with \texttt{my$\_$ode} (solid) and \texttt{my$\_$odes} (dashed).}
+    \label{myodes}
+\end{figure}
+
+
+\end{enumerate}        
+
+\end{document}
+I

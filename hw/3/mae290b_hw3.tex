@@ -1,0 +1,631 @@
+\documentclass[11pt]{article}
+
+%% WRY has commented out some unused packages %%
+%% If needed, activate these by uncommenting
+\usepackage{geometry}                % See geometry.pdf to learn the layout options. There are lots.
+%\geometry{letterpaper}                   % ... or a4paper or a5paper or ... 
+\geometry{a4paper,left=2.5cm,right=2.5cm,top=2.5cm,bottom=2.5cm}
+%\geometry{landscape}                % Activate for rotated page geometry
+%\usepackage[parfill]{parskip}    % Activate to begin paragraphs with an empty line rather than an indent
+
+%for figures
+%\usepackage{graphicx}
+
+\usepackage{color}
+\definecolor{mygreen}{RGB}{28,172,0} % color values Red, Green, Blue
+\definecolor{mylilas}{RGB}{170,55,241}
+%% for graphics this one is also OK:
+\usepackage{epsfig}
+
+%% AMS mathsymbols are enabled with
+\usepackage{amssymb,amsmath}
+
+%% more options in enumerate
+\usepackage{enumerate}
+\usepackage{enumitem}
+
+%% insert code
+\usepackage{listings}
+
+\usepackage[utf8]{inputenc}
+
+\usepackage{hyperref}
+
+
+% Default fixed font does not support bold face
+\DeclareFixedFont{\ttb}{T1}{txtt}{bx}{n}{12} % for bold
+\DeclareFixedFont{\ttm}{T1}{txtt}{m}{n}{12}  % for normal
+
+% Custom colors
+\usepackage{color}
+\definecolor{deepblue}{rgb}{0,0,0.5}
+\definecolor{deepred}{rgb}{0.6,0,0}
+\definecolor{deepgreen}{rgb}{0,0.5,0}
+
+
+% Python style for highlighting
+\newcommand\pythonstyle{\lstset{
+language=Python,
+basicstyle=\ttm,
+otherkeywords={self},             % Add keywords here
+keywordstyle=\ttb\color{deepblue},
+emph={MyClass,__init__},          % Custom highlighting
+emphstyle=\ttb\color{deepred},    % Custom highlighting style
+stringstyle=\color{deepgreen},
+frame=tb,                         % Any extra options here
+showstringspaces=false            % 
+}}
+
+% Python environment
+\lstnewenvironment{python}[1][]
+{
+\pythonstyle
+\lstset{#1}
+}
+{}
+
+% Python for external files
+\newcommand\pythonexternal[2][]{{
+\pythonstyle
+\lstinputlisting[#1]{#2}}}
+
+% Python for inline
+\newcommand\pythoninline[1]{{\pythonstyle\lstinline!#1!}}
+
+%\usepackage{epstopdf}
+%\DeclareGraphicsRule{.tif}{png}{.png}{`convert #1 `dirname #1`/`basename #1 .tif`.png}
+
+%% To save typing, create some shortcuts
+\newcommand{\ord}{\mbox{ord}}
+\newcommand{\Ai}{\mbox{Ai}}
+\newcommand{\Bi}{\mbox{Bi}}
+\newcommand{\half}{\tfrac{1}{2}}
+\newcommand{\defn}{\stackrel{\text{def}}{=}}
+%% Use Roman font for special numbers and differentials:
+\newcommand{\ii}{\mathrm{i}}
+\newcommand{\dd}{\mathrm{d}}
+\newcommand{\ee}{\mathrm{e}}
+\newcommand{\su}{\mathsf{u}}
+\newcommand{\sv}{\mathsf{v}}
+
+\newcommand{\com}{\, ,}
+\newcommand{\per}{\, .}
+
+\newcommand{\noi}{\noindent}
+
+\def\beq{\begin{equation}}
+\def\eeq{\end{equation}}
+
+
+%% stop typing all of epsilon and delta
+\newcommand{\ep}{\ensuremath {\epsilon}}
+\newcommand{\de}{\ensuremath {\delta}}
+
+%% colors
+\usepackage{graphicx,xcolor,lipsum}
+
+
+\usepackage{mathtools}
+
+\usepackage{graphicx}
+\newcommand*{\matminus}{%
+  \leavevmode
+  \hphantom{0}%
+  \llap{%
+    \settowidth{\dimen0 }{$0$}%
+    \resizebox{1.1\dimen0 }{\height}{$-$}%
+  }%
+}
+
+
+\title{MAE290B, Homework Assignment 3\footnote{This homework assignment was coded and developed using a Jupyter Notebook. An html version of the notebook is available at \href{https://github.com/crocha700/mae290b}{https://github.com/crocha700/mae290b}}}
+\author{Cesar B Rocha}
+%\date{October 16th, 2014}                                           
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section*{Problem 1}
+
+\begin{enumerate}[label=(\alph*)]
+
+    \item We rewrite the linear advection-diffusion equation as
+
+        \beq
+            \label{adv_diff_eqn}
+            T_t = -u T_x + \alpha T_{xx} \,
+        \eeq
+
+        Using solutions in the form $T(x,t) = \hat{T}(t) \, \ee^{\ii \, k \, x}$ in \eqref{adv_diff_eqn}, we obtain an exact ordinary differential equation
+
+        \beq
+            \label{adv_diff_eqn_modf}
+            \hat{T}_t = -\ii \, k \, u\, \hat{T} - \alpha \, k^2 \, \hat{T}.
+        \eeq
+        which can be rewritten in the form
+        \beq
+            \label{adv_diff_eqn2}
+            \hat{T}_t = \kappa \hat{T},
+        \eeq
+        where $\kappa \defn - \ii \, k \, u - \alpha \, k^2$.
+
+       We approximate \eqref{adv_diff_eqn} using a second-order difference schemes
+
+        \beq
+            \label{adv_diff_eqn_diff}
+            T_t^i = - \frac{u}{2 \Delta x}\left(T^{i+1} - T^{i-1} \right) + \frac{\alpha}{\Delta x^2} \left( T^{i+1} - 2 \, T^i + T^{i-1}\right) \, ,
+        \eeq
+        where $i$ denotes the node located at $i\, \Delta x$. Assuming wave-like solutions in $x$ we obtain
+
+        \beq
+            \label{adv_diff_eqn_modf_diff}
+            \hat{T}_t = -\ii \, \frac{\sin{\left(k\Delta x\right)}}{\Delta x} \, u\, \hat{T} - 4 \, \alpha \, \frac{\sin^2{\left(\tfrac{k \, \Delta x}{2}\right)}}{\Delta x^2} \, \hat{T}.
+        \eeq
+        In the purely advective case ($\alpha = 0$) the modified wavenumber is $k_{adv} = \sin{\left(k \Delta x\right)}/\Delta x$. Conversely, in the solely diffusive limit ($u = 0$) the modified wavenumber is $k_{diff} = 2 \sin{\left(\tfrac{k \, \Delta x}{2}\right)}/\Delta x$. In the general case, we rewrite \eqref{adv_diff_eqn_modf_diff} as 
+        \beq
+            \label{adv_diff_eqn2}
+            \hat{T}_t = \kappa' \hat{T},
+        \eeq
+        where $\kappa' \defn -  \ii \, \frac{u}{\Delta x}\sin{\left(k\Delta x\right)}  - 4 \, \frac{\alpha}{\Delta x^2} \, \sin^2{\left(\tfrac{k \, \Delta x}{2}\right)}$ is the modified wavenumber.
+
+
+
+\begin{figure}[p]
+\centerline{\epsfig{file=figs/mod_wavenum.png,width=12cm}}
+\caption{Modified wavenumber for advective and diffusive components of \eqref{adv_diff_eqn_diff}. Clearly, the modified wavenumber becomes exact as $k \, \Delta x \to 0$. The error increases with $k$. The advective modified wavenumber is $100  \%$ inaccurate at the Nyquist scale ($k \, \Delta x = \pi$).}
+    \label{comp}
+\end{figure}
+
+\item A third-order Runge-Kutta approximation to a equation in the form $y' = f(t,y)$
+    \beq
+        \label{RK3}
+        y_{n+1} = y_{n} + \frac{\Delta t}{4} \left( f_1 + 3 f_3 \right) \, ,
+    \eeq
+    where
+
+    \begin{align}
+        f_1 = f\left(t_n,y_n\right) \nonumber \\
+        f_2 = f\left(t_n + \tfrac{\Delta t}{3}, y_n + \tfrac{\Delta t}{3} f_1 \right) \nonumber \\
+        f_3 = f\left(t_n + \tfrac{2 \Delta t}{3} , y_n + \tfrac{\Delta t}{3} f_2 \right)
+    \end{align}
+
+    Using this scheme, we approximate \eqref{adv_diff_eqn2} 
+
+    \beq
+        \label{rk3_adv_diff}
+        \hat{T}_{n+1} = \underbrace{\left(1 + \kappa' \, \Delta t + \frac{(\kappa' \, \Delta t)^2}{2}+ \frac{(\kappa' \, \Delta t)^3}{6}  \right)}_{\defn G}  \hat{T}_n \, ,
+    \eeq
+    where $G$ is the amplification factor.
+
+\item In the advective limit ($\alpha = 0$), $\kappa' = -\ii\tfrac{u}{\Delta x}\sin\left( k \Delta x\right)$. Hence $\kappa' \Delta t = -\ii \,r \sin\left( k \Delta x \right)$, where $r \defn \tfrac{u \Delta t}{\Delta x}$ is the CFL number. From the analysis we performed in Homework Assignment $1$ we have, for purely imaginary $\kappa' \Delta t$,
+
+    \beq
+    |\kappa'| \Delta t \leq \sqrt{3}\, .
+    \eeq
+    Hence
+    \beq
+r \leq \frac{\sqrt{3}}{|\sin\left(k \Delta x\right)|}\,.
+    \eeq
+    The most restrictive scenario is when  $|\sin\left(k \Delta x\right)| = 1$, and therefore $\boxed{r \leq \sqrt{3}}$.
+
+    In the diffusive limit ($u = 0$), $\kappa' = - 4 \, \alpha \sin^2 \left(\tfrac{k \Delta x}{2} \right)/\Delta x^2$. Thus $\kappa' \Delta t = -4 \, \delta \, \sin^2 \left(\tfrac{k \Delta x}{2} \right)$ where $\delta \defn \alpha \Delta t /\Delta x^2$ is the diffusion number. From previous analysis of the RK3 method, for purely real $\kappa' \Delta t$, the stability criterion is
+
+    \beq
+    |\kappa'| \Delta t \lesssim \, 2.5143
+    \eeq
+    Hence
+    \beq
+    \delta \lesssim \frac{2.5143}{4 \, |\sin\left(\tfrac{k \Delta x}{2}\right)|}\,.
+    \eeq
+    Again, the most restrictive scenario is when  $ |\sin\left(\tfrac{k \Delta x}{2}\right)| = 1$, and therefore $\boxed{\delta \lesssim 0.628}$.
+
+    In the general case
+
+    \beq
+        \kappa' \Delta t = - 4 \, \delta \, \sin^2{\left(\tfrac{k \, \Delta x}{2}\right)}  -  \ii \, r \,\sin{\left(k\Delta x\right)}. 
+    \eeq
+    The restriction on the parameter $\delta$ and $r$ is such that $\kappa' \Delta t$ is inside the stability region in the complex plane $\left[\text{Re}(\kappa)\Delta t,\text{Im}(\kappa)\Delta t \right]$. The paramatric curve that delimits the stability region is given by
+
+    \beq
+    \left|1 + \kappa' \Delta t + \frac{(\kappa' \Delta t)^2}{2} + \frac{(\kappa' \Delta t)^3}{6}\right| = 1\, .
+    \eeq
+
+    In practice, however,  we can recognize that \eqref{adv_diff_eqn} solves two different processes as its name suggests. Hence we must choose the most restrictive time-step between the advective and diffusive time scales.
+
+
+%\begin{figure}[p]
+%\centerline{\epsfig{file=figs/stability_region_rk3.png,width=12cm}}
+%\caption{Stability region for RK3 scheme used to march the diffusive-advective equation. The scheme is stable provided that $\delta$ and $r$ are such that  $\kappa' \Delta t = - 4 \, \delta \, \sin^2{\left(\tfrac{k \, \Delta x}{2}\right)}  -  \ii \, r \,\sin{\left(k\Delta x\right)}$ is within the yellowish region.}
+%    \label{stability_rk3}
+%\end{figure}
+
+
+\end{enumerate}        
+
+\section*{Problem 2}
+
+The discretized advection-diffusion equation  \eqref{adv_diff_eqn_diff} is a system of ODEs
+
+
+\beq
+\label{adv_diff_matrix_setup}
+\begin{bmatrix*}
+\dot T_1    \\
+\dot T_2 \\
+\dot T_3 \\
+\vdots \\
+\dot T_{N-2} \\
+\dot T_{N-1} \\
+\dot T_{N} 
+\end{bmatrix*}
+=
+\begin{bmatrix*}
+    \xi & \gamma & 0 & \ldots & \ldots & 0\\
+    \beta & \xi & \gamma & 0 & \ldots & 0\\
+    0 & \beta & \xi & \gamma & \ddots & 0\\
+    \vdots & \ddots & \ddots & \ddots & \ddots & 0\\
+    0 & \ldots  & \beta & \xi & \gamma & 0\\    
+    0 & \ldots & 0 & \beta & \xi & \gamma\\
+    0 & \ldots & 0 & 0 & \beta & \xi \\    
+\end{bmatrix*}
+\begin{bmatrix*}
+T_1    \\
+T_2 \\
+T_3 \\
+\vdots \\
+T_{N-2} \\
+T_{N-1} \\
+ T_{N} 
+\end{bmatrix*}
+ + 
+\begin{bmatrix*}
+\beta\, T_0    \\
+0 \\
+0 \\
+\vdots \\
+0 \\
+0 \\
+\gamma\, T_{N+1} 
+\end{bmatrix*}\, ,
+\eeq    
+where 
+
+\beq
+\beta \defn \frac{\alpha}{\Delta x^2} - \frac{u}{2 \Delta x} \:\:\:\:\:\: \text{and}\:\: \:\:\:\: \xi \defn -2\frac{\alpha}{\Delta x^2}\:\: \:\:\:\: \text{and} \:\:\:\:\:\: \gamma \defn  \frac{\alpha}{\Delta x^2} + \frac{u}{2 \Delta x} \, .
+\eeq
+
+    First we code a simple function to compute and store the matrix in \eqref{adv_diff_matrix_setup}. We then code a simple function to evaluate the right-hand-side of the system of ODEs.
+
+\begin{lstlisting}[language=Python]
+def matrix_M(dx,u,alpha):
+    
+    """ Create the tridiagonal matrix M 
+        given the parameters dx, u, alpha"""
+    
+    dx2 = dx**2
+    beta, xi, gamma = alpha/dx2+u/(2*dx), -2*alpha/dx2, alpha/dx2 -\
+    u/(2*dx)
+
+    N = int(1/dx) -1
+    M = np.zeros((N,N))
+    
+    for i in range(N):
+        if i == 0: M[0,0],M[0,1] = xi, gamma
+        elif i == N-1: M[-1,-2],M[-1,-1] = beta,xi
+        else: M[i,i-1],M[i,i],M[i,i+1] = beta,xi,gamma
+            
+    # Use Orliskin condition if advective (alpha = 0)
+    if alpha == 0:
+        M[-1,-1] = -u/dx
+        M[-1,-2] = u/dx
+            
+    return M    
+
+def func_adv_diff(T,Tl,Tr,M,dx,u,alpha):
+    
+    """ Evaluates the RHS of the discretized advection
+        diffusion equation given the array of data T, 
+        the boundary conditions [Tl,Tr], and matrix M,
+        and the parameters dx, u, and alpha 
+        
+        If pure advective simulation use Tr = 0. A Orliskin
+            boundary condition is applied so that the pattern
+            exist the finite domain smoothly     """
+    
+    dx2 = dx**2
+    beta, gamma = alpha/dx2+u/(2*dx), alpha/dx2 - u/(2*dx)
+    
+    Frhs = np.array( np.matrix(M)*np.matrix(T).T )
+    Frhs[0] += beta*Tl
+    Frhs[-1] += gamma*Tr
+    
+    return Frhs[:,0]\end{lstlisting}
+
+We then adapt the functions to march the system of ODEs forward (code submitted via TED). 
+
+\begin{lstlisting}[language=Python]
+dx = 0.001
+alpha = 0.
+u = 1.
+dt = .1*dx*sqrt(3)/np.abs(u)
+x = np.arange(dx,1.,dx)
+Tl = 1.
+Tr = 0.
+
+Tini = initial_T(dx)
+T,t = my_ode(func_adv_diff,Tini,Tl,Tr,0.,2.,dt,dx,alpha=alpha,u=u)
+
+# append boundary values
+T = np.concatenate((np.ones((1,t.size))*Tl,T),axis=0)
+T = np.concatenate((T,np.ones((1,t.size))*T[-1,-2]),axis=0)
+x = np.append(0,x)
+x = np.append(x,1.)
+\end{lstlisting}
+
+The domain is $0 \leq x \leq 1$. The initial condition is
+
+\begin{align}
+    \label{Tini}
+    T(x,0) = \sin\left(20 \, \pi \, x\right) \:\: ; \:\: .2 \leq x \leq .5 \, ,\nonumber \\ 
+    T(x,0) = 0 \:\: ; \:\: \text{elsewhere} . 
+\end{align}    
+Notice that while the initial condition is continuous, its first derivative is not: T(x,0) has corners at $x = 0.2, 0.5$. Before we compute solutions using this initial condition, it is important to test the code with a smoother initial condition. As a test case, we use a guassian initial condition $T_c(x,0) = \ee^{- \left(x-x_0\right)^2/a^2}$, where $x_0$ and $a$ are parameters that measure its location and spread about $x_0$. We then use this initial condition to test the code in three different scenarios: advective, diffusive, and advective-diffusive. The code performs the calculation correctly. As expected, the initial condition propagates to the right at speed $u$ in the advective limit (Figure \ref{gaussian_test_case} top), whereas the initial gradients are smoothed away in the diffusive case (Figure \ref{gaussian_test_case} middle). In the general case, the initial pattern propagated to the right and is smoothed out (Figure \ref{gaussian_test_case} bottom).
+
+\begin{figure}[p]
+\begin{center}
+    \includegraphics[width=22pc,angle=0]{figs/gauss_adv.png}\\
+    \includegraphics[width=22pc,angle=0]{figs/gauss_diff.png}\\
+    \includegraphics[width=22pc,angle=0]{figs/gauss_adv-diff.png}
+\end{center}    
+\caption{Test case of numerical code to solve the advection-difussion equation given a smooth Guassian initial condition.}
+\label{gaussian_test_case}
+\end{figure}
+
+
+\begin{enumerate}[label=(\alph*)]
+
+    \item With $\alpha = 0$, \eqref{adv_diff_eqn_diff} reduces to the advective equation. The exact solution, consistent with the boundary condition at $x = 0$ is
+        \beq
+        T(x,t) = T_{ini}\left(x - u\, t \right) + \mathcal{H}(x-ut)\, ,
+        \eeq
+        where $T_{ini}$ is the function that describes the initial condition \eqref{Tini}, and $\mathcal{H}$ is a step function
+
+        \begin{align}
+            \mathcal{H}(x) = 1, \:\:\:\: x\leq u\,t \, , \nonumber \\
+            \mathcal{H}(x) = 0, \:\:\:\: x > u\,t \, ,
+        \end{align}
+        
+        Essentially, the initial pattern propagates to the right at speed $u$. The exact solution assumes an semi-infinite domain (this wave equation is only one-dimensional in space). However, the computational calculations require a finite domain. We then impose a Orliskin condition at $i = N$ using an upwind approximation for the first derivative ($\partial T_N = - u\, \left(T_{N} - T_{N-1}\right)/\Delta x$). This condition ensures that the wave pattern leaves the finite domain smoothly. After $u/1$ times, the wavy pattern will leave the $0\leq x \leq 1 $, and the solution will tend to 1.
+
+        We have to choose the spatial resolution based on the desired accuracy. The spatial discretization scheme has a truncation error $\ord{(\Delta x^2)}$. (Using $\Delta x = 0.001$ requires a very small time-step for stability. This hints that the diffusive part of the equation typically constrains the time-step.) To obtain a solution accurate to $\ord{(10^{-6})}$, we set $\Delta x = 10^{-3}$. The time-step can then be calculated based on the stability criterion (Problem 1a):
+        \beq
+        \Delta t \leq \frac{\sqrt{3}\, \Delta x}{u} = \sqrt{3} \times 10^{-3}\, .
+        \eeq
+        We use a value $90 \%$ of the largest time-step required for stability.
+
+
+        Figure \ref{pb2_adv} show the evolution of the solution in the advective limit. Clearly, the main wavy pattern propagates to the right, and eventually leaves the domain. The corner in the initial condition and due to the boundary condition introduce Gibb oscillations. The information prescribed at the boundary also propagates into the domain at speed $u$. The final solution ($t=2$) is a constant $1$ (within accuracy), as in the exact case.  
+
+\begin{figure}[p]
+\begin{center}
+    \includegraphics[width=18pc,angle=0]{figs/pb2_adv_0.png}\includegraphics[width=18pc,angle=0]{figs/pb2_adv_1.png} \\
+    \includegraphics[width=18pc,angle=0]{figs/pb2_adv_2.png}\includegraphics[width=18pc,angle=0]{figs/pb2_adv_3.png} \\
+     \includegraphics[width=18pc,angle=0]{figs/pb2_adv_4.png}\includegraphics[width=18pc,angle=0]{figs/pb2_adv_5.png}    
+\end{center}    
+\caption{Simulation of the advection equation given the wavy initial condition \eqref{Tini} and the boundary condition $T(0,t) = 1$.}
+\label{pb2_adv}
+\end{figure}
+
+    \item With $u = 0$, \eqref{adv_diff_eqn_diff} reduces to the diffusive equation. The steady state solution is a constant gradient between the boundaries:
+
+        \beq
+            T^s(x) = 1 - x.
+        \eeq
+
+        We have to choose the spatial resolution based on the desired accuracy. The spatial discretization scheme has a truncation error $\ord{(\Delta x^2)}$. To obtain a solution accurate to $\ord{(10^{-4})}$, we set $\Delta x = 10^{-2}$. The time-step can then be calculated based on the stability criterion (Problem 1b):
+        \beq
+        \Delta t \lesssim \frac{2.5143\, \Delta x^2}{\alpha} =  \,2.5143 \times 10^{-4} .
+        \eeq    
+        We use a value $90 \%$ of the largest time-step required for stability.
+            
+    Figure \eqref{pb2_diff} shows the evolution of the initial way pattern. The initial gradients are smoothed. At $t=1$ the solution if already close to steady state.
+
+
+\begin{figure}[p]
+\begin{center}
+    \includegraphics[width=18pc,angle=0]{figs/pb2_diff_0.png}\includegraphics[width=18pc,angle=0]{figs/pb2_diff_2.png} \\
+    \includegraphics[width=18pc,angle=0]{figs/pb2_diff_6.png}\includegraphics[width=18pc,angle=0]{figs/pb2_diff_4.png} \\
+     \includegraphics[width=18pc,angle=0]{figs/pb2_diff_8.png}\includegraphics[width=18pc,angle=0]{figs/pb2_diff_11.png}    
+\end{center}    
+\caption{Simulation of the difussion equation given the wavy initial condition \eqref{Tini} and the boundary conditions $T(0,t) = 1$  and  $T(1,t) = 0$. The solution relaxes to the steady state constant-gradient solution.}
+\label{pb2_diff}
+\end{figure}
+
+\end{enumerate}
+
+\section*{Problem 3}
+
+We discretized the coupled PDEs using second-order center differences in space
+
+\begin{align}
+\label{burgers_fd_space_u}
+\partial_t \, u_{i,j} = \left(\frac{\nu}{h^2} - \frac{u_{i,j}}{2\, h} \right)\left(u_{i+1,j}-u_{i-1,j}\right) + \left(\frac{\nu}{h^2} - \frac{v_{i,j}}{2\, h} \right)\left(u_{i,j+1}-u_{i,j+1}\right) -\frac{\nu}{h^2}u_{i,j} \, ,  
+\end{align}
+and 
+
+\begin{align}
+\label{burgers_fd_space_v}
+\partial_t \, v_{i,j} = \left(\frac{\nu}{h^2} - \frac{u_{i,j}}{2\, h} \right)\left(v_{i+1,j}-v_{i-1,j}\right) + \left(\frac{\nu}{h^2} - \frac{v_{i,j}}{2\, h} \right)\left(v_{i,j+1}-v_{i,j+1}\right) -\frac{\nu}{h^2}v_{i,j} \, .  
+\end{align}
+where $h \defn \Delta x = \Delta y = 1/(N+1)$ and $i\, h$ and $j\, h$ are indices are the locations of the i
+th and j'th nodes in the $x-$direction and $y-$direction. The zero'th and $N+1$'th nodes corresponds to the boundaries. The boundary conditions are
+
+\begin{align}
+    \label{burgers_bc}
+    u(0,y) &= u(1,y) = 0\,  & v(0,y) = v(1,y) = 1 - y = 1 - j \, h \nonumber \\
+    u(x,0) &= u(x,1) = \sin \left(2\pi x\right) = \sin \left(2\pi\,i\,h\right)\,  &  v(x,0) = 0 \:\:\: \text{and}\:\:\: v(1,y) = 1\, . 
+\end{align}
+Equations \eqref{burgers_fd_space_u} and  \eqref{burgers_fd_space_v} have the form
+
+\beq
+\label{system_odes}
+\frac{\dd \su}{\dd t} = F(\su,\sv) \qquad \text{and} \qquad \frac{\dd \sv}{\dd t} = G(\su,\sv)\com
+\eeq
+where $\su$ and $\sv$ are $N\times N$ arrays and $F$ and $G$ are the functions that define the right-hand-side of   \eqref{burgers_fd_space_u} and \eqref{burgers_fd_space_v}. We can then integrate this coupled systems of ODEs using an explicit method. First we code a simple function to compute $F$ and $G$ given $\su$ and $\sv$.
+
+
+\begin{lstlisting}[language=Python]
+# evaluate the RHS of the 2D Burgers equation system
+def Compute_FuFv(u,v,N=100,nu=0.015):
+
+    # parameters
+    h = 1/(N+1)
+    h2 = h**2
+    h_2 = 2*h
+    nuh = nu/h2
+    gamma = -4*nuh
+    
+    Fu,Fv = np.zeros((N,N)), np.zeros((N,N))
+
+    x = np.arange(N+2)*h
+    y = np.arange(N+2)*h
+
+    # append boundary conditions
+    U,V = np.zeros((N+2,N+2)), np.zeros((N+2,N+2))
+    U[1:-1,1:-1],V[1:-1,1:-1] = u,v
+    
+    U[0,:],U[-1,:] = 0., 0.
+    U[:,0],U[:,-1] = sin(2.*pi*x),sin(2.*pi*x)
+
+    V[0,:],V[-1,:] = 1.-y, 1.-y
+    V[:,0],V[:,-1] = 1.,0
+
+    # evaluate Fu and Fv
+    for i in range(1,N+1):
+        for j in range(1,N+1):
+
+            beta_um, beta_up = nuh - U[i,j]/h_2,nuh + U[i,j]/h_2
+            beta_vm, beta_vp = nuh - V[i,j]/h_2,nuh + V[i,j]/h_2
+
+            Fu[i-1,j-1] =  beta_um*U[i+1,j] + beta_up*U[i-1,j] + \
+                           +  beta_vm*U[i,j+1] + beta_vp*U[i,j-1] + \
+                            gamma*U[i,j] 
+                    
+            Fv[i-1,j-1] =  beta_um*V[i+1,j] + beta_up*V[i-1,j] + \
+                           +  beta_vm*V[i,j+1] + beta_vp*V[i,j-1] + \
+                            gamma*V[i,j]
+
+    return Fu,Fv
+\end{lstlisting}
+
+We then adapt previous code to step the system forward using a RK3 schemme
+
+\begin{lstlisting}[language=Python]
+def my_ode(F,u0,v0,t0,tf,dt,N=100):
+    
+    '''
+        Solve two coupled systems of ODE that arises from discretizing
+            the 2D (x,y,t) coupled Burgers equation
+            
+        ---------------------------------------------------------
+            F: function that represents the RHS of the systems
+            u0,v0 : N by N array of initial conditions
+            t0: inital time
+            tf: final time
+            dt: time step
+            N:  number of points in each directions 
+        ----------------------------------------------------------
+    '''
+
+    ix,jx = u0.shape
+
+    t = np.arange(t0,tf+dt,dt)
+    
+    U,V = np.zeros((ix,jx,t.size)),np.zeros((ix,jx,t.size))
+    U[:,:,0],V[:,:,0] = u0,v0
+    
+    for i in range(1,t.size):
+        U[:,:,i],V[:,:,i] = stepforward(F,U[:,:,i-1],V[:,:,i-1],dt,N=N)
+
+    return U,V,t
+
+def stepforward(F,u,v,dt,N=100):
+    
+    '''
+        Step forward the coupled systems of ODE that arises from discretizing
+            the 2D (x,y,t) coupled Burgers equation
+            
+        Uses RK3 schemme    
+            
+        ---------------------------------------------------------
+            F: function that represents the RHS of the systems
+            u,v : N by N array of variables to be stepped forward
+            dt: time step
+            N:  number of points in each directions 
+        ----------------------------------------------------------
+      
+    '''
+    
+    a1 = 8/15.
+    a2 = 2/3.
+
+    f1u,f1v = F(u,v,N)
+    u1,v1 = u + dt*a1*f1u,v + dt*a1*f1v
+
+    f2u,f2v = F(u1,v1,N)
+    u2,v2 = u1 + dt*a2*f2v,v1 + dt*a2*f2v
+
+    f3u,f3v = F(u2,v2,N)
+
+    unew,vnew = u + dt/4.*(f1u+3.*f3u), v + dt/4.*(f1v+3.*f3v)
+
+    return unew,vnew
+\end{lstlisting}
+
+
+Because $u$ and $v$ are $\ord{(1)}$, with $N = 101$, the CFL condition requires  $\Delta t$ to be $\lesssim 0.15$. The condition on the diffusion number is much more restrictive. With $N=101$ and $\nu = 0.015$,  of the maximum time-step allow is $\Delta t \approx 0.004$.  We set the time-step as $50 \%$ of the maximum time-step required for stability. By experimenting with the code, we notice that setting a larger time-step eventually produced an unstable solution likely owing to the non-linearity of the equations.
+
+Figure \eqref{pb3_uv} shows the solution at $t = 2$ (the solution achieves steady state after $t\approx 1$). The solution has sharp ``fronts'' (regions of strong gradients) both in $u$ and $v$. Because of the boundary conditions, the front in $u$ is more symmetric (about $x = 1/2$). The sharp ``front'' in $v$ is located close to $y=1$ (Figure \ref{pb3_uv_xy}).
+
+Reducing the time-step has little impact on the steady-state solution at time $t = 10$ (it takes longer time to achieved steady state with coarser resolution). Reducing the resolution, however, has can change the steady-state solution. Figures \ref{pb3_uv_21} and \ref{pb3_uv_xy_21} show the results for $N=21$. The solution is evidently much coarser, but changes only slightly for $u$. The changes are more significant for $v$. There is still a front near $y=1$. However, contrary to the solution $N=101$, $v$ increases with $y$ (Figure \ref{pb3_uv_xy_21}).
+
+
+\begin{figure}[p]
+\begin{center}
+    \includegraphics[width=22pc,angle=0]{figs/pb3_u.png}\includegraphics[width=22pc,angle=0]{figs/pb3_v.png}     
+\end{center}    
+\caption{Steady state solution of 2D dimensional Burgers equations subject to the boundary conditions \eqref{burgers_bc}.}
+\label{pb3_uv}
+\end{figure}
+
+
+\begin{figure}[p]
+\begin{center}
+    \includegraphics[width=22pc,angle=0]{figs/pb3_uv_xy_fixed.png}    
+\end{center}    
+\caption{Steady state solution of 2D dimensional Burgers equations subject to the boundary conditions \eqref{burgers_bc}. Solution with $N=101$. The lines are slices of Figure \ref{pb3_uv} at fixed $x$ or $y$.}
+\label{pb3_uv_xy}
+\end{figure}
+
+\begin{figure}[p]
+\begin{center}
+    \includegraphics[width=22pc,angle=0]{figs/pb3_u_21.png}\includegraphics[width=22pc,angle=0]{figs/pb3_v_21.png}     
+\end{center}    
+\caption{Steady state solution of 2D dimensional Burgers equations subject to the boundary conditions \eqref{burgers_bc}. Solution with $N=21$.}
+\label{pb3_uv_21}
+\end{figure}
+
+
+\begin{figure}[p]
+\begin{center}
+    \includegraphics[width=22pc,angle=0]{figs/pb3_uv_xy_fixed_21.png}    
+\end{center}    
+\caption{Steady state solution of 2D dimensional Burgers equations subject to the boundary conditions \eqref{burgers_bc}. Solution with $N=21$. The lines are slices of Figure \ref{pb3_uv} at fixed $x$ or $y$.}
+\label{pb3_uv_xy_21}
+\end{figure}
+
+
+\end{document}
+
+
