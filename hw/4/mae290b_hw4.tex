@@ -1,0 +1,212 @@
+\documentclass[11pt]{article}
+
+%% WRY has commented out some unused packages %%
+%% If needed, activate these by uncommenting
+\usepackage{geometry}                % See geometry.pdf to learn the layout options. There are lots.
+%\geometry{letterpaper}                   % ... or a4paper or a5paper or ... 
+\geometry{a4paper,left=2.5cm,right=2.5cm,top=2.5cm,bottom=2.5cm}
+%\geometry{landscape}                % Activate for rotated page geometry
+%\usepackage[parfill]{parskip}    % Activate to begin paragraphs with an empty line rather than an indent
+
+%for figures
+%\usepackage{graphicx}
+
+\usepackage{color}
+\definecolor{mygreen}{RGB}{28,172,0} % color values Red, Green, Blue
+\definecolor{mylilas}{RGB}{170,55,241}
+%% for graphics this one is also OK:
+\usepackage{epsfig}
+
+%% AMS mathsymbols are enabled with
+\usepackage{amssymb,amsmath}
+
+%% more options in enumerate
+\usepackage{enumerate}
+\usepackage{enumitem}
+
+%% insert code
+\usepackage{listings}
+
+\usepackage[utf8]{inputenc}
+
+\usepackage{hyperref}
+
+
+% Default fixed font does not support bold face
+\DeclareFixedFont{\ttb}{T1}{txtt}{bx}{n}{12} % for bold
+\DeclareFixedFont{\ttm}{T1}{txtt}{m}{n}{12}  % for normal
+
+% Custom colors
+\usepackage{color}
+\definecolor{deepblue}{rgb}{0,0,0.5}
+\definecolor{deepred}{rgb}{0.6,0,0}
+\definecolor{deepgreen}{rgb}{0,0.5,0}
+
+
+% Python style for highlighting
+\newcommand\pythonstyle{\lstset{
+language=Python,
+basicstyle=\ttm,
+otherkeywords={self},             % Add keywords here
+keywordstyle=\ttb\color{deepblue},
+emph={MyClass,__init__},          % Custom highlighting
+emphstyle=\ttb\color{deepred},    % Custom highlighting style
+stringstyle=\color{deepgreen},
+frame=tb,                         % Any extra options here
+showstringspaces=false            % 
+}}
+
+% Python environment
+\lstnewenvironment{python}[1][]
+{
+\pythonstyle
+\lstset{#1}
+}
+{}
+
+% Python for external files
+\newcommand\pythonexternal[2][]{{
+\pythonstyle
+\lstinputlisting[#1]{#2}}}
+
+% Python for inline
+\newcommand\pythoninline[1]{{\pythonstyle\lstinline!#1!}}
+
+%\usepackage{epstopdf}
+%\DeclareGraphicsRule{.tif}{png}{.png}{`convert #1 `dirname #1`/`basename #1 .tif`.png}
+
+%% To save typing, create some shortcuts
+\newcommand{\ord}{\mbox{ord}}
+\newcommand{\Ai}{\mbox{Ai}}
+\newcommand{\Bi}{\mbox{Bi}}
+\newcommand{\half}{\tfrac{1}{2}}
+\newcommand{\defn}{\stackrel{\text{def}}{=}}
+%% Use Roman font for special numbers and differentials:
+\newcommand{\ii}{\mathrm{i}}
+\newcommand{\dd}{\mathrm{d}}
+\newcommand{\ee}{\mathrm{e}}
+\newcommand{\su}{\mathsf{u}}
+\newcommand{\sv}{\mathsf{v}}
+
+\newcommand{\com}{\, ,}
+\newcommand{\per}{\, .}
+
+\newcommand{\noi}{\noindent}
+
+\def\beq{\begin{equation}}
+\def\eeq{\end{equation}}
+
+
+%% stop typing all of epsilon and delta
+\newcommand{\ep}{\ensuremath {\epsilon}}
+\newcommand{\de}{\ensuremath {\delta}}
+
+%% colors
+\usepackage{graphicx,xcolor,lipsum}
+
+
+\usepackage{mathtools}
+
+\usepackage{graphicx}
+\newcommand*{\matminus}{%
+  \leavevmode
+  \hphantom{0}%
+  \llap{%
+    \settowidth{\dimen0 }{$0$}%
+    \resizebox{1.1\dimen0 }{\height}{$-$}%
+  }%
+}
+
+
+\title{MAE290B, Homework Assignment 3\footnote{This homework assignment was coded and developed using a Jupyter Notebook. An html version of the notebook is available at \href{https://github.com/crocha700/mae290b}{https://github.com/crocha700/mae290b}}}
+\author{Cesar B Rocha}
+%\date{October 16th, 2014}                                           
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section*{Problem 1}
+
+\begin{enumerate}[label=(\alph*)]
+
+
+    \item Using centered space approximation to discretize the spatial derivatives we obtain
+
+        \beq
+            \label{diff_discret_space}
+            \partial_t \,T_i = \frac{\alpha}{\Delta x^2}\left(T_{i+1}-2T_i + T_{i+1}\right)\per
+        \eeq
+        We use a modified wavenumber analysis. Let $T = \hat{T}(t)\ee^{\ii k x}$. Taylor-expanding $T_{i+1}$ and $T_{i-1}$  about the $i$'th node, we obtain 
+      
+        \beq
+            \label{diff_discret_space_mod}
+            \partial_t \,\hat{T}_i = \frac{\alpha}{\Delta x^2}\left(\cos k\Delta x - 2\right) + \ord{(\Delta x^2)}\per
+        \eeq
+        The overall local discretization error is $\ord{(\Delta x^2)}$. Noticing that
+        \beq
+        \sin \left(k \tfrac{\Delta x}{2}\right)^2 = 2 - \cos k \Delta x\com
+        \eeq
+        the modified wavenumber is
+
+        \beq
+            \label{mod_k}
+            k'^2 = \frac{4}{\Delta x^2}\sin \left(k \tfrac{\Delta x}{2}\right)^2\per
+        \eeq
+        The truncation error is $\ord{(\Delta x^2)}$. This represents the order of accuracy. The accuracy is clearly wavenumber dependent .For large scales ($k \Delta x$ small) we have
+
+        Figure \ref{fig_mod_k} shows the modified wavenumber as a function of the wavenumber. A simple asymptotic analysis gives  $k'\to k$ as $k\Delta x \to 0$. That is the discretization highly accurate for small $k\Delta$. However, the accuracy is degraded at larger wavenumber. At $k\Delta=\pi$, $k'Delta x= 2$, which is a relative error of $\sim36\%$.
+    
+\begin{figure}[ht]
+\centerline{\epsfig{file=modified_wavenumber_diff.png,width=12cm}}
+\caption{Modified wavenumber analysis for second-order centered spatial discretization of the diffusion operator.}
+    \label{fig_mod_k}
+\end{figure}
+
+        Equation \eqref{diff_discret_space} has the form of the model problem $y' = \lambda y$. From Homework Assignment 1 we have that the Crank-Nicolson stability condition requires
+        \beq
+            \label{cn_cond}
+            \frac{|1+\lambda \Delta t|}{|1-\lambda \Delta t|} \leq 1\com
+        \eeq
+        which is always satisfied for $\lambda < 0$ (the scheme is unconditionally stable). Here we change lambda with $-k'^2$, which is always negative (this assumes $\alpha>0$; no negative diffusion here!). This implicit scheme is unconditionally stable.
+    
+        From the modified wavenumber expansion  \eqref{diff_discret_space_mod} we notice that the scheme is second-order in space. The Crank-Nicolson (CN) method for time stepping is also second-order. To see that, we notice that \eqref{diff_discret_space} can be written in the form
+ 
+        \begin{equation}
+                \partial_t \hat{ T_i} = F_i\per
+        \end{equation}
+        A forward Euler gives 
+        \begin{equation}
+            \label{ee_1}
+            T_i^{n+1} = T_i^{n} + \Delta t F_i^n -\frac{\Delta t}{2}\partial_{tt}^2 T^{n}  +\frac{\Delta t^2}{6}\partial_{ttt}^3 T^{n} + \ord{(\Delta t^3)} \per
+        \end{equation}
+        Similarly, a backward Euler scheme gives
+        \begin{equation}
+            \label{ie_1}
+            T_i^{n+1} = T_i^{n} + \Delta t F_i^{n+1}  + \frac{\Delta t}{2}\partial_{tt}^2 T^{n}  +\frac{\Delta t^2}{6}\partial_{ttt}^3 T^{n} + \ord{(\Delta t^3)} \per
+        \end{equation}
+        Both Euler schemes are first-order. The average of these schemes gives CN:
+        \begin{equation}
+            \label{cn_1}
+            T_i^{n+1} = T_i^{n} + \frac{\Delta t}{2}\left(F_i^n + F_i^{n+1} \right) + \frac{\Delta t^2}{6}\partial_{ttt}^3 T^{n} +\ord{(\Delta t^3)}  \com
+        \end{equation}
+        which clearly has a truncation error $\ord{(\Delta t^2)}$; CN is second-order accurate. 
+
+
+%\begin{figure}[p]
+%\centerline{\epsfig{file=figs/stability_region_rk3.png,width=12cm}}
+%\caption{Stability region for RK3 scheme used to march the diffusive-advective equation. The scheme is stable provided that $\delta$ and $r$ are such that  $\kappa' \Delta t = - 4 \, \delta \, \sin^2{\left(\tfrac{k \, \Delta x}{2}\right)}  -  \ii \, r \,\sin{\left(k\Delta x\right)}$ is within the yellowish region.}
+%    \label{stability_rk3}
+%\end{figure}
+
+
+\end{enumerate}        
+
+
+%\begin{lstlisting}[language=Python]
+%\end{lstlisting}
+
+
+\end{document}
+
+
