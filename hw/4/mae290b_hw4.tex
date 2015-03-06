@@ -130,7 +130,6 @@ showstringspaces=false            %
 
 \begin{enumerate}[label=(\alph*)]
 
-
     \item Using centered space approximation to discretize the spatial derivatives we obtain
 
         \beq
@@ -173,24 +172,115 @@ showstringspaces=false            %
         From the modified wavenumber expansion  \eqref{diff_discret_space_mod} we notice that the scheme is second-order in space. The Crank-Nicolson (CN) method for time stepping is also second-order. To see that, we notice that \eqref{diff_discret_space} can be written in the form
  
         \begin{equation}
-                \partial_t \hat{ T_i} = F_i\per
+            \partial_t T_i = A_{xx}T_i\com
         \end{equation}
-        A forward Euler gives 
+        where $A_{xx}$ is a second-order differential operator. A forward Euler gives 
         \begin{equation}
             \label{ee_1}
-            T_i^{n+1} = T_i^{n} + \Delta t F_i^n -\frac{\Delta t}{2}\partial_{tt}^2 T^{n}  +\frac{\Delta t^2}{6}\partial_{ttt}^3 T^{n} + \ord{(\Delta t^3)} \per
+            T_i^{n+1} = T_i^{n} + \Delta t A_{xx}T_i^n -\frac{\Delta t}{2}\partial_{tt}^2 T^{n}  +\frac{\Delta t^2}{6}\partial_{ttt}^3 T^{n} + \ord{(\Delta t^3)} \per
         \end{equation}
         Similarly, a backward Euler scheme gives
         \begin{equation}
             \label{ie_1}
-            T_i^{n+1} = T_i^{n} + \Delta t F_i^{n+1}  + \frac{\Delta t}{2}\partial_{tt}^2 T^{n}  +\frac{\Delta t^2}{6}\partial_{ttt}^3 T^{n} + \ord{(\Delta t^3)} \per
+            T_i^{n+1} = T_i^{n} + \Delta t A_{xx}T_i^{n+1}  + \frac{\Delta t}{2}\partial_{tt}^2 T^{n}  +\frac{\Delta t^2}{6}\partial_{ttt}^3 T^{n} + \ord{(\Delta t^3)} \per
         \end{equation}
         Both Euler schemes are first-order. The average of these schemes gives CN:
         \begin{equation}
             \label{cn_1}
-            T_i^{n+1} = T_i^{n} + \frac{\Delta t}{2}\left(F_i^n + F_i^{n+1} \right) + \frac{\Delta t^2}{6}\partial_{ttt}^3 T^{n} +\ord{(\Delta t^3)}  \com
+            T_i^{n+1} = T_i^{n} + \frac{\Delta t}{2}\left(A_{xx}T_i^n + A_{xx}T_i^{n+1} \right) + \frac{\Delta t^2}{6}\partial_{ttt}^3 T^{n} +\ord{(\Delta t^3)}  \com
         \end{equation}
         which clearly has a truncation error $\ord{(\Delta t^2)}$; CN is second-order accurate. 
+
+    %% item (b)    
+    \item The equation centered in the i'th node is
+
+        \beq
+            \label{disc_ith}
+            -\delta\,T_{i+1}^{n+1} + \left(1+2\delta\right)T_i^{n+1} -\delta\,T_{i-1}^{n+1} =   \delta\,T_{i+1}^{n+1} + \left(1-2\delta\right)T_i^{n+1} +\delta\,T_{i-1}^{n+1}\com
+        \eeq
+        where
+        \beq
+            \label{delta_defn}
+            \delta \defn \frac{\alpha\Delta t}{2\Delta x^2}\per
+        \eeq
+        At the node closest to the left boundary ($i=1$) we have
+        \beq
+            \label{disc_left_boundary}
+            -\delta\,T_{2}^{n+1} + \left(1+2\delta\right)T_1^{n+1} =   \delta\,T_{2}^{n+1} + \left(1-2\delta\right)T_1^{n+1} + 2\delta\,\mathcal{T}_1\com
+        \eeq   
+        where we implemented the Dirichlet boundary condition $T\left(x=0,t\right) = \mathcal{T}_1$ (to avoid confusion with the temperature at note $i=1$, we use a caligraphic ``T'' to denote the know value). As for the Neumann boundary condition at $x=1$ we use a one-sided second-order scheme. In the $M$'th node we have
+        \beq
+            \label{bc_rhs}
+            (3-2 c\Delta x^2)T^{n+1}_M - 4T^{n+1}_{M-1}+T^{n+1}_{N-2} = 0
+        \eeq
+    We then have a $M \times M$ system of equations to solve:
+    \beq
+    \mathsf{A}\, \mathsf{T}^{n+1} = \mathsf{b}\com
+    \eeq
+    where $\mathsf{T}^{n+1} = \left[T_1,T_2,\ldots,T_{N-1},T_N\right]^{n+1}$, and
+
+
+\begin{equation} \label{matrixM}
+    \mathsf{A} = \left[ \begin{matrix}
+            (1+2\delta) & -\delta & && 0\\
+            -\delta & \ddots & \ddots & &\\
+                    & \ddots & (1+2\delta) & -\delta &\vdots\\
+                    && -\delta & (1+2\delta) & -\delta \\
+    0 &\ldots &1& -4 & (3-2 c\Delta x^2)\end{matrix} \right]\per
+\end{equation}
+Notice that using a second-oder scheme for the Neumann boundary condition at $x=1$ breaks the tridiagonal structure of the system. The vector $\mathsf{b}$ can be written as a matrix-vector multiplication (but in practice there is no need to store all these zeros)
+
+\beq
+\mathsf{F} = \left[ \begin{matrix}
+        (1-2\delta) & \delta &0 &\ldots &0\\
+        \delta & \ddots & \ddots & &0\\
+               & \ddots &\ddots & \delta &\vdots\\
+        0 & & \delta & (1-2\delta)&0\\
+0 & \ldots&  & 0 &0\end{matrix} \right]
+ \left[ \begin{matrix}
+         T_1\\
+         T_2\\
+         \vdots\\
+         T_{N-1}\\
+         T_N
+ \end{matrix} \right]^{n} +
+ \left[ \begin{matrix}
+         2\delta \mathcal{T}_1\\
+         0\\
+         \vdots\\
+         0\\
+         0
+ \end{matrix} \right]
+\eeq
+
+    \item With $M = 5$, we have $\Delta x = 1/5$, and
+        \beq
+            \delta = \frac{25}{2}\Delta t.
+        \eeq
+        The system to solve is
+\begin{align} \label{matrixM}
+    & \left[ \begin{matrix}
+            (1+2\delta) & -\delta & 0 & 0 & 0\\
+            -\delta & (1+2\delta)  & -\delta & 0 &0\\
+             0& -\delta & (1+2\delta)  & -\delta & 0\\
+              0&  0& -\delta & (1+2\delta)  & -\delta \\
+             0&  0& 1 & -4  & (3-50\,c) \\
+           \end{matrix} \right]
+           \left[ \begin{matrix}
+         T_1\\
+         T_2\\
+         T_3\\
+         T_4\\
+         T_5\\
+ \end{matrix} \right]^{n+1}\\ &=
+ \left[ \begin{matrix}
+         20\delta\,\Delta t \mathcal{T}_1 + (1 -2\delta)T_1 + \delta T_2 \\
+         \delta T_1+  (1 -2\delta)T_2 + \delta T_3\\
+         \delta T_2+  (1 -2\delta)T_3 +  \delta T_4\\
+         \delta T_3+  (1 -2\delta)T_4 + \ \delta T_5\\
+ \end{matrix} \right]^n\per
+\end{align}
+
 
 
 %\begin{figure}[p]
@@ -199,8 +289,55 @@ showstringspaces=false            %
 %    \label{stability_rk3}
 %\end{figure}
 
-
 \end{enumerate}        
+
+\section*{Problem 2}
+
+
+    Discretizing Laplace's equation leads to a large system of linear equations in the form
+    \beq
+        \label{lap_eqn}
+        \mathsf{A}\mathsf{\phi} = \mathsf{b}\com
+    \eeq
+    where the $\mathsf{A}$ is a block tridiagonal matrix.  
+
+    In the Gauss-Seidel method we have the split $\mathsf{A} = \mathsf{A}_1 - \mathsf{A}_2$ with $\mathsf{A}_1 = \mathsf{D} -\mathsf{L}$ where $\mathsf{D}$ is the diagonal matrix and $\mathsf{L}$ is a strictly lower triangular matrix. $A_1$ is therefore a strictly upper triangular matrix. 
+
+\begin{enumerate}[label=(\alph*)]
+    \item The error $\ep$ at the $(k+1)$'th iteration  is
+
+        \beq
+        \ep^{(k+1)} = \left(\mathsf{A_1}^{-1}\mathsf{A_2}\right)^n\ep^{(k)}\per
+        \eeq
+        Thus by induction 
+        \beq
+        \ep^{k} = \left(\mathsf{A_1}^{-1}\mathsf{A_2}\right)^k\ep^0\com
+        \eeq
+        and therefore
+        \beq
+        ||\ep^{(k}|| = ||\left(\mathsf{A_1}^{-1}\mathsf{A_2}\right)^k\ep^0|| \leq ||\left(\mathsf{A_1}^{-1}\mathsf{A_2}\right)^n||\,\, ||\ep^0||\leq||\mathsf{A_1}^{-1}\mathsf{A_2}||^k\,\, ||\ep^0| \com
+        \eeq
+        where $|| \mathsf{\psi} ||$ denotes any norm of the vector $\mathsf{\psi}$, and the inequality follows from Chauchy-Schwartz. For the $L_2$-norm we have
+        \beq
+        ||\mathsf{A_1}^{-1}\mathsf{A_2}|| = |\lambda|_{max}\com
+        \eeq
+        where $|\lambda|_{max}$ is the largest (in magnitude) eigenvalue of $\mathsf{A_1}^{-1}\mathsf{A_2}$. Thus an upper bound on the error at the $k$'th iteration is $|\lambda|_{max}\,\ep^0$. Hence a lower bound on the number of iterations necessary to reduce the error by $10^{-2}$ is
+        \beq
+        n_{it} \ge \frac{2}{|\log{|\lambda|_{max}}|}\per
+        \eeq
+        In particular for the Gauss-Seidel matrix obtained from Laplace's equation we have
+        \beq
+        \lambda_{max} = \left(\cos\frac{\pi}{M}\right)^2.
+        \eeq
+        where $M$ is the number of interior points. With M=31, $\lambda_{max} \approx 0.9898$. Thus $n_{it} \ge 195\per$
+
+    \item In index notation the iteration equation is
+        \beq
+        \phi_{i,j}^{(k+1)} = \frac{1}{4}\left[\phi_{i-1,j}^{(k+1)}+\phi_{i,j}^{(k)}+\phi_{i,j-1}^{(k+1)}+\phi_{i,j-1}^{(k)}\right]\per
+        \eeq
+
+\end{enumerate}
+
 
 
 %\begin{lstlisting}[language=Python]
