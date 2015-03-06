@@ -283,12 +283,6 @@ Notice that using a second-oder scheme for the Neumann boundary condition at $x=
 
 
 
-%\begin{figure}[p]
-%\centerline{\epsfig{file=figs/stability_region_rk3.png,width=12cm}}
-%\caption{Stability region for RK3 scheme used to march the diffusive-advective equation. The scheme is stable provided that $\delta$ and $r$ are such that  $\kappa' \Delta t = - 4 \, \delta \, \sin^2{\left(\tfrac{k \, \Delta x}{2}\right)}  -  \ii \, r \,\sin{\left(k\Delta x\right)}$ is within the yellowish region.}
-%    \label{stability_rk3}
-%\end{figure}
-
 \end{enumerate}        
 
 \section*{Problem 2}
@@ -336,7 +330,74 @@ Notice that using a second-oder scheme for the Neumann boundary condition at $x=
         \phi_{i,j}^{(k+1)} = \frac{1}{4}\left[\phi_{i-1,j}^{(k+1)}+\phi_{i,j}^{(k)}+\phi_{i,j-1}^{(k+1)}+\phi_{i,j-1}^{(k)}\right]\per
         \eeq
 
+        Hence, the Gauss-Seidel scheme is simply a four point average implemented iteratively and always using the newest available information. This simple example has an available analytic solution: the initial guess will tend to relax towards zero. Because the exact solution is simply zero everywhere, we compute the as the maximum value of $\phi$ in each iteration. We iterate until it converges to machine double precision. This translates into code simply by using nested loops:
+
+\begin{lstlisting}[language=python]
+ def laplace_gs(phi_0,Nmax=100000,tol=1.e-14):
+    
+""" 
+     Solve Laplace's sequation subject to Dirichlet boundary condtion 
+         using a GS iterative scheme
+ 
+"""   
+
+phi_new = phi_0.copy() 
+
+for nit in range(Nmax):
+
+    for i in range(1,M-1):
+
+        for j in range(1,M-1):
+    
+            phi_old = phi_new.copy()
+    
+            phi_new[i,j] = .25*( phi_new[i-1,j]+phi_old[i+1,j]+\
+                                    phi_new[i,j-1]+phi_old[i,j+1] )
+
+    if nit == 0:
+        error = np.max(np.abs(phi_new))
+    else:
+        error = np.append(error,np.max(np.abs(phi))
+        if error[-1] < tol: break
+    
+print "Converged after %i iterations within %1.e\
+error tolerance" %(nit+1,tol)
+         
+return phi_new,error
+\end{lstlisting}
+
+Figure \ref{sin_half} shows the initial guess and equilibrated solution. The error as a function of iteration is shown in Figure \ref{error} . It takes 502 iterations to decrease the by two orders of magnitude. This is larger than the estimate of item (a) but it is still in the same order of magnitude. The convergence is very slow: the solution attains a machine double precision accuracy after 3437 iterations. 
+
+    \item We repeat item (b) changing the initial conditions with $\phi_0 = \sin 4\pi x + \sin 4\pi y$. Figure \ref{sin_half} shows the initial guess and equilibrated solution. The error as a function of iteration is shown in Figure \ref{error} . It takes 37 iterations to decrease the by two orders of magnitude.  This is less than the estimate of item (a) but it is still in the same order of magnitude. The convergence is faster than item (b): the solution attains a machine double precision accuracy after 2934 iterations.  
+
+
+    \item  The comparison of , the small scale error decays faster than the large scale anomalies. Multi-grid techniques recognize this and iterate on the error using a hierarchy of grid.  That is, after a few iterations on the coarser grid, one interpolates the error into a finner grid, and iterate it a few times, then inteporlated into a finner grid, etc. Then one intepolates back into finner grid to compute the ``corrected solution''. These steps are iterated until the solution converges.
+
+
+\begin{figure}[p]
+\centerline{\epsfig{file=sin_half.png,width=12cm}}
+\caption{Initial guess and equilibrated solution to Laplace's equation in a square box. The initial guess is $\phi_0 = \sin \pi x + \sin \pi y$.}
+    \label{sin_half}
+\end{figure}
+
+\begin{figure}[p]
+\centerline{\epsfig{file=error_it.png,width=12cm}}
+\caption{Error normalized by the initial condition as a function of iteration for solution to Laplace's equation in a square box.}
+    \label{error}
+\end{figure}
+
+
+
+\begin{figure}[p]
+\centerline{\epsfig{file=sin_four.png,width=12cm}}
+\caption{Initial guess and equilibrated solution for Laplace's equation in a square box. The initial guess is $\phi_0 = \sin 4\pi x + \sin 4\pi y$.}
+    \label{sin_four}
+\end{figure}
+
+
+
 \end{enumerate}
+
 
 
 
