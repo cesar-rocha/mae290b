@@ -1,0 +1,239 @@
+\documentclass[11pt]{article}
+
+%% WRY has commented out some unused packages %%
+%% If needed, activate these by uncommenting
+\usepackage{geometry}                % See geometry.pdf to learn the layout options. There are lots.
+%\geometry{letterpaper}                   % ... or a4paper or a5paper or ... 
+\geometry{a4paper,left=2.5cm,right=2.5cm,top=2.5cm,bottom=2.5cm}
+%\geometry{landscape}                % Activate for rotated page geometry
+%\usepackage[parfill]{parskip}    % Activate to begin paragraphs with an empty line rather than an indent
+
+%for figures
+%\usepackage{graphicx}
+
+\usepackage{color}
+\definecolor{mygreen}{RGB}{28,172,0} % color values Red, Green, Blue
+\definecolor{mylilas}{RGB}{170,55,241}
+%% for graphics this one is also OK:
+\usepackage{epsfig}
+
+%% AMS mathsymbols are enabled with
+\usepackage{amssymb,amsmath}
+
+%% more options in enumerate
+\usepackage{enumerate}
+\usepackage{enumitem}
+
+%% insert code
+\usepackage{listings}
+
+\usepackage[utf8]{inputenc}
+
+\usepackage{hyperref}
+
+
+% Default fixed font does not support bold face
+\DeclareFixedFont{\ttb}{T1}{txtt}{bx}{n}{12} % for bold
+\DeclareFixedFont{\ttm}{T1}{txtt}{m}{n}{12}  % for normal
+
+% Custom colors
+\usepackage{color}
+\definecolor{deepblue}{rgb}{0,0,0.5}
+\definecolor{deepred}{rgb}{0.6,0,0}
+\definecolor{deepgreen}{rgb}{0,0.5,0}
+
+
+% Python style for highlighting
+\newcommand\pythonstyle{\lstset{
+language=Python,
+basicstyle=\ttm,
+otherkeywords={self},             % Add keywords here
+keywordstyle=\ttb\color{deepblue},
+emph={MyClass,__init__},          % Custom highlighting
+emphstyle=\ttb\color{deepred},    % Custom highlighting style
+stringstyle=\color{deepgreen},
+frame=tb,                         % Any extra options here
+showstringspaces=false            % 
+}}
+
+% Python environment
+\lstnewenvironment{python}[1][]
+{
+\pythonstyle
+\lstset{#1}
+}
+{}
+
+% Python for external files
+\newcommand\pythonexternal[2][]{{
+\pythonstyle
+\lstinputlisting[#1]{#2}}}
+
+% Python for inline
+\newcommand\pythoninline[1]{{\pythonstyle\lstinline!#1!}}
+
+%\usepackage{epstopdf}
+%\DeclareGraphicsRule{.tif}{png}{.png}{`convert #1 `dirname #1`/`basename #1 .tif`.png}
+
+%% To save typing, create some shortcuts
+\newcommand{\ord}{\mbox{ord}}
+\newcommand{\Ai}{\mbox{Ai}}
+\newcommand{\Bi}{\mbox{Bi}}
+\newcommand{\half}{\tfrac{1}{2}}
+\newcommand{\defn}{\stackrel{\text{def}}{=}}
+%% Use Roman font for special numbers and differentials:
+\newcommand{\ii}{\mathrm{i}}
+\newcommand{\dd}{\mathrm{d}}
+\newcommand{\ee}{\mathrm{e}}
+\newcommand{\su}{\mathsf{u}}
+\newcommand{\sv}{\mathsf{v}}
+
+\newcommand{\com}{\, ,}
+\newcommand{\per}{\, .}
+
+\newcommand{\noi}{\noindent}
+
+\def\beq{\begin{equation}}
+\def\eeq{\end{equation}}
+
+
+%% stop typing all of epsilon and delta
+\newcommand{\ep}{\ensuremath {\epsilon}}
+\newcommand{\de}{\ensuremath {\delta}}
+
+%% colors
+\usepackage{graphicx,xcolor,lipsum}
+
+
+\usepackage{mathtools}
+
+\usepackage{graphicx}
+\newcommand*{\matminus}{%
+  \leavevmode
+  \hphantom{0}%
+  \llap{%
+    \settowidth{\dimen0 }{$0$}%
+    \resizebox{1.1\dimen0 }{\height}{$-$}%
+  }%
+}
+
+
+\title{MAE290B, Final project\footnote{This project was developed using a Jupyter Notebook. An html version of the notebook is available at \href{https://github.com/crocha700/mae290b}{https://github.com/crocha700/mae290b}}}
+\author{Cesar B Rocha}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+We solve the two-dimensional diffusion equation 
+
+\beq
+\label{exact_eqn}
+T_t = \alpha\left(T_{xx}+T_{yy}\right) + Q(x,y)\com
+\eeq
+ in a rectangular domain. The boundary conditions are
+
+
+\beq
+\label{bc_eqn}
+T(x,y=0,t) = 4\sin\left(2\pi k\,x/l_x\right)\qquad \text{and}\qquad T(x,y=l_y,t) = 0\per
+\eeq
+The initial condition is
+
+\beq
+\label{ic_eqn}
+T(x,y,t=0) = 0, \,y\neq0\per
+\eeq
+$Q$ is the source
+
+\beq
+\label{ic_eqn}
+Q(x,y) = q(y)\,\sin\left(2\pi k\,x/l_x\right)\, \text{where}\qquad q_0\,\ee^{-a(y-l_y/2)^2}\com
+\eeq
+
+
+\begin{enumerate}[label=(\alph*)]
+    \item Because \eqref{exact_eqn} is linear and the  boundary conditions and the source are periodic in $x$ the exact solution is separable in $x-(y,t)$:
+
+        \beq
+        \label{separable_soln}
+        T(x,y,t) = \sin\left(2\pi\,k\,x/l_x\right)\,f(y,t).
+        \eeq
+        On inserting \eqref{separable_soln} in \eqref{exact_eqn} we obtain an partial differential equation for $f$:
+
+        \beq
+        \label{f_eqn}
+    \partial_t f = \alpha\left(-\frac{4\pi^2k^2}{l_x^2}\,f + \partial^2_{yy}f\right) + q(y)\per
+        \eeq
+        The boundary conditions in terms of $f$ are
+
+        \beq
+            f(y=0,t) = 4\qquad \text{and}\qquad f(y=l_y,t) = 0\per
+        \eeq
+        The initial condition is
+        \beq
+            f(y=0,t) = 0, \,y\neq0\per\per
+        \eeq
+
+
+
+        It is important to realize that \eqref{f_eqn} is an exact result that follows from the linearity of the governing equation and the simplicity of the source and boundary conditions. The finite-differences discretization on a mesh of resolution $\Delta x$ leads to modified wavenumber, $k'= 4\sin^2\left(\tfrac{2\pi}{l_x}\,\kappa\Delta x/2\right)$, where $\kappa$ is the range of wavenumbers resolved by the discrete the grid: $0\leq\tfrac{\kappa\Delta x}{l_x}\leq 1/2$. For $\kappa = k$, the solution only produces very accurate result if $\tfrac{k\Delta x}{l_x}<<1$ (i.e. the grid spacing is very small compared to the wavelength of the boundary condition and source).
+
+    \item Discretizing \eqref{f_eqn} in $y$ using a second-order centered finite-differences scheme, we obtain
+
+        \beq
+            \label{f_eqn_discrete}
+            \partial_t\,f_j = \beta f_{j+1} - \left(2\beta + \gamma\right)f_j + \beta f_{j-1} + q_j\com
+        \eeq
+        where
+
+        \beq
+        \beta \defn \frac{\alpha}{\Delta y^2} \qquad\text{and}\qquad \gamma \defn \frac{4\pi^2\alpha k^2}{l_x^2}\com
+        \eeq
+        \beq
+        q_j = q_0\,\ee^{-a(j\Delta y - l_y/2)^2}\com
+        \eeq
+        and $j=1,2,\ldots,N-1$ are the interior nodes indices. Equation \eqref{f_eqn_discrete} is system of $N-1$ ordinary differential equations. We march this system using a third-order Runge-Kutta scheme. To estimate the optimum time-step to ensure stability, we employ a modified wavenumber analysis. For the purpose of this analysis, we assume solutions in the form
+        \beq
+        f(y,t) = \hat{f}\,\ee^{\ii(2\pi\,l\,y/l_y)}\com
+        \eeq
+        and consider the homogeneous (sourceless) problem. We obtain
+
+        \beq
+        \partial_t\,\hat f = - \alpha\left[\frac{4\pi^2k^2}{l_x^2} + \frac{4}{\Delta y^2}\sin^2\left(\tfrac{2\pi\,l}{l_y}\tfrac{\Delta y}{2}\right)\right] \hat f \per
+        \eeq
+        From Homework Assignment 1 we have that for real eigenvalues the third-order Runge-Kutta scheme requires
+
+        \beq
+             \alpha\left[\frac{4\pi^2k^2}{l_x^2} + \frac{4}{\Delta y^2}\sin^2\left(\tfrac{2\pi\,l}{l_y}\tfrac{\Delta y}{2}\right)\right] \Delta t \leq 2.5127\per
+        \eeq
+        The most restrictive scenario gives 
+        \beq
+        \Delta t \leq \frac{2.5127}{\alpha\left[\frac{4\pi^2k^2}{l_x^2} + \frac{4}{\Delta y^2}\right] }\per
+        \eeq
+
+        We code a simple function to integrate \eqref{f_eqn_discrete} using $N=11$ and the following parameters
+
+        \begin{align}
+            l_x = 2& \qquad\text{and}\qquad l_y=2\com \nonumber\\
+            \alpha = 2 & \qquad\text{and}\qquad a=10 \qquad \text{and}\qquad k=1\per \\
+        \end{align}
+
+
+\end{enumerate}
+
+%\maketitle
+%\begin{figure}[p]
+%\centerline{\epsfig{file=sin_four.png,width=12cm}}
+%\caption{Initial guess and equilibrated solution for Laplace's equation in a square box. The initial guess is $\phi_0 = \sin 4\pi x + \sin 4\pi y$.}
+%    \label{sin_four}
+%\end{figure}
+
+
+
+
+
+
+\end{document}
+
+
