@@ -168,6 +168,7 @@ Q(x,y) = q(y)\,\sin\left(2\pi k\,x/l_x\right)\, \text{where}\qquad q_0\,\ee^{-a(
         The boundary conditions in terms of $f$ are
 
         \beq
+        \label{f_bc}
             f(y=0,t) = 4\qquad \text{and}\qquad f(y=l_y,t) = 0\per
         \eeq
         The initial condition is
@@ -188,6 +189,7 @@ Q(x,y) = q(y)\,\sin\left(2\pi k\,x/l_x\right)\, \text{where}\qquad q_0\,\ee^{-a(
         where
 
         \beq
+        \label{beta_gamma_defn}
         \beta \defn \frac{\alpha}{\Delta y^2} \qquad\text{and}\qquad \gamma \defn \frac{4\pi^2\alpha k^2}{l_x^2}\com
         \eeq
         \beq
@@ -209,6 +211,7 @@ Q(x,y) = q(y)\,\sin\left(2\pi k\,x/l_x\right)\, \text{where}\qquad q_0\,\ee^{-a(
         \eeq
         The most restrictive scenario gives 
         \beq
+        \label{stability_rk3}
         \Delta t \leq \frac{2.5127}{\alpha\left[\frac{4\pi^2k^2}{l_x^2} + \frac{4}{\Delta y^2}\right] }\per
         \eeq
 
@@ -216,8 +219,78 @@ Q(x,y) = q(y)\,\sin\left(2\pi k\,x/l_x\right)\, \text{where}\qquad q_0\,\ee^{-a(
 
         \begin{align}
             l_x = 2& \qquad\text{and}\qquad l_y=2\com \nonumber\\
-            \alpha = 2 & \qquad\text{and}\qquad a=10 \qquad \text{and}\qquad k=1\per \\
+            \alpha = 2 & \qquad\text{and}\qquad a=10 \qquad \text{and}\qquad k=1\per
         \end{align}
+
+
+        The solution is integrated until it converges to steady state within machine double precision. 
+        
+        Before we proceed with the calculations it is useful to the test the code developed. To do that we note that a simple exact solution to the steady version of \eqref{f_eqn}-\eqref{f_bc} is available:
+
+        \beq
+            \label{f_bcc}
+            f_e  = \frac{4}{\sinh{\left(2\pi\,k\tfrac{l_y}{l_x}\right)}}\,\sinh{\left[2\pi\,k\tfrac{\left(l_y-y\right)}{l_x}\right]}
+        \eeq
+
+
+        Figure \ref{comp_exact} show a comparison of the exact solution, $f_e$, against the numerical one computed using RK3. Clearly the numerical solution converges to the correct solution. The error in the numerical solution, measured by the root-mean-square of the difference to the exact solution, is $\sim 0.008$. This error is essentially due to the spatial discretization in y-direction.
+
+        \begin{figure}[p]
+        \centerline{\epsfig{file=f_rk3_exact.eps,width=12cm}}
+        \caption{Testing the code: A comparison of exact and numerical steady solutions to  \eqref{f_eqn}-\eqref{f_bc} without source ($q_0$).}
+        \label{comp_exact}
+        \end{figure}
+
+
+        \label{separable_soln}
+        We integrate equation \eqref{f_eqn} using with different source strengths $q_0=-0.04,0,0.04$. With such a coarse resolution in $y$ the stability criterion \eqref{stability_rk3}  gives a very-large time-step $\sim 2$. To ensure good accuracy we choose $\Delta t = 1.$. It takes about 130 iterations for the solution to converge to steady-state within machine precision. The solution for $f$ is then multiplied by the sine function to form the solution for $T$ \eqref{separable_soln}. A slice of the solutions with different source strengths is shown in Figure \ref{soln_rk3}. The magnitude of the periodic solution in $x$ is larger for the $q_0=0.04$ case. For the  sink (negative source) case, the solution has smaller magnitude and opposite phase to the source. The solution with no source has also small magnitude compared to the source solution.
+
+
+
+        \begin{figure}[p]
+        \centerline{\epsfig{file=T_rk3.eps,width=12cm}}
+        \caption{Slice of the RK3 numerical solution at $y=l_y/2$ for three different source strengths.}
+        \label{soln_rk3}
+        \end{figure}
+
+    \item Using Crank-Nicolson, the time discretization of \eqref{f_eqn_discrete} is
+
+        \beq
+            \label{f_eqn_discrete_cn}
+            \frac{f_i^{n+1}-f_i^n}{\Delta t} = \frac{1}{2}\left(\mathsf{D}^{n}f_j+\mathsf{D}^{n+1}f_j\right) + q_j\com
+        \eeq
+        where
+
+        \beq
+            \label{D_defn}
+            \mathsf{D}f_j  \defn   \beta f_{j+1} - \left(2\beta + \gamma\right)f_j + \beta f_{j-1}\per
+        \eeq
+        with $\beta$ and $\gamma$ defined in \eqref{beta_gamma_defn}. Rearranging terms we obtain
+
+        \begin{align}
+            \label{tridiag_general}
+            -\tfrac{\Delta t}{2}\beta\,f_{j-1}^{n+1} & + \left(1 + \Delta t \beta + \tfrac{\gamma \Delta t}{2}\right)\,f_j^{n+1} -\tfrac{\Delta t}{2}\beta\,f_{j+1}^{n+1} =   \nonumber \\ &\tfrac{\Delta t}{2}\beta\,f_{j-1}^{n}+\left(1 - \Delta t \beta - \tfrac{\gamma \Delta t}{2}\right)\,f_j^{n} + \tfrac{\Delta t}{2}\beta\,f_{j+1}^{n} + q_j
+        \end{align}
+        The right-hand-side of \eqref{tridiag_general} is known. Hence this is a simple $(N-1)\times(N-1)$ tridiagonal system. Applying the boundary condition we obtain, at node $j=1$,
+        \begin{align}
+            \label{tridiag_general_1}
+            &  \left(1 + \Delta t \beta + \tfrac{\gamma \Delta t}{2}\right)\,f_1^{n+1} -\tfrac{\Delta t}{2}\beta\,f_{2}^{n+1} =   \nonumber \\ &4\Delta t\beta+\left(1 - \Delta t \beta - \tfrac{\gamma \Delta t}{2}\right)\,f_1^{n} + \tfrac{\Delta t}{2}\beta\,f_{2}^{n} + q_1\per
+        \end{align}
+        Similarly, at node $j=N-1$,
+          \begin{align}
+            \label{tridiag_general_N1}
+            -\tfrac{\Delta t}{2}\beta\,f_{N-1}^{n+1} & + \left(1 + \Delta t \beta + \tfrac{\gamma \Delta t}{2}\right)\,f_{N-1}^{n+1} =   \nonumber \\ &\tfrac{\Delta t}{2}\beta\,f_{N-2}^{n}+\left(1 - \Delta t \beta - \tfrac{\gamma \Delta t}{2}\right)\,f_{N-1}^{n}+ q_{N-1}\per
+        \end{align}
+
+
+        To implement the Crank-Nicolson solver we first code a simple function to solve the tridiagonal linear system using Thomas' algorithm. The system of ODEs is then step forward until the solution converges to steady states within machine precision. The Crank-Nicolson scheme is unconditionally stable. To ensure good accuracy we set $\Delta t = 1$. The solution converges after 230 iterations. Notice that this is the same number of iterations as the RK3 scheme. With better resolution in $y$, however, the RK3 scheme would be constrained to smaller time-steps (proportional to $\Delta y^2$) while the CN would be stable stable.  Figure \ref{soln_cn} show a slice of the steady-state solution at $y=l_y/2$. The solution is virtually the same as the RK3 solution discussed above.
+
+
+        \begin{figure}[p]
+        \centerline{\epsfig{file=Tcn_y1.eps,width=12cm}}
+        \caption{Slice of the CN numerical solution at $y=l_y/2$ for three different source strengths.}
+        \label{soln_cn}
+        \end{figure}
 
 
 \end{enumerate}
