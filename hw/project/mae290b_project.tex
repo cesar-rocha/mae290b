@@ -118,20 +118,26 @@ showstringspaces=false            %
 }
 
 
-\title{MAE290B, Final project\footnote{This project was developed using a Jupyter Notebook. An html version of the notebook is available at \href{https://github.com/crocha700/mae290b}{https://github.com/crocha700/mae290b}}}
+\title{MAE290B, Final Project\footnote{This project was developed using a Jupyter Notebook. An html version of the notebook is available at \href{https://github.com/crocha700/mae290b}{https://github.com/crocha700/mae290b}}}
 \author{Cesar B Rocha}
 \date{\today}
 
 \begin{document}
 \maketitle
 
-We solve the two-dimensional diffusion equation 
+\section*{Abstract}
+
+We solve the two-dimensional diffusion equation with source in a square domain periodic in the $x-$direction, with particular focus on the steady-state solution. With coarse resolution in the $y-$direction there is no notable difference in performance between a third-order Runge-Kutta  and a Crank-Nicolson (CN) schemes for time marching. With higher resolution, however, the CN scheme requires much less iterations to converge because it is free of stability restrictions on the time-step. We show that decreasing the diffusion coefficient proportionally increases the time necessary to achieve steady-state. We verify that the spatial discretization scheme is second-order accurate by performing experiments with a hierarchy of finner grids in the $y-$direction and comparing the numerical solutions for the sourceless case ($q_0=0$) with the exact solution.
+
+\section*{Main text}
+
+\noindent We consider the two-dimensional diffusion equation 
 
 \beq
 \label{exact_eqn}
 T_t = \alpha\left(T_{xx}+T_{yy}\right) + Q(x,y)\com
 \eeq
- in a rectangular domain. The boundary conditions are
+in a rectangular domain of size $l_x$ and $l_y$ in the $x-$ an $y-$direction, respectively. The boundary conditions are
 
 
 \beq
@@ -148,7 +154,7 @@ $Q$ is the source
 
 \beq
 \label{ic_eqn}
-Q(x,y) = q(y)\,\sin\left(2\pi k\,x/l_x\right)\, \text{where}\qquad q_0\,\ee^{-a(y-l_y/2)^2}\com
+Q(x,y) = q(y)\,\sin\left(2\pi k\,x/l_x\right)\,,\, \text{where}\qquad q_0\,\ee^{-a(y-l_y/2)^2}\com
 \eeq
 
 
@@ -215,7 +221,7 @@ Q(x,y) = q(y)\,\sin\left(2\pi k\,x/l_x\right)\, \text{where}\qquad q_0\,\ee^{-a(
         \Delta t \leq \frac{2.5127}{\alpha\left[\frac{4\pi^2k^2}{l_x^2} + \frac{4}{\Delta y^2}\right] }\per
         \eeq
 
-        We code a simple function to integrate \eqref{f_eqn_discrete} using $N=11$ and the following parameters
+        We code a simple function\footnote{All codes are submitted via TED.} to integrate \eqref{f_eqn_discrete} using $N=11$ and the following parameters
 
         \begin{align}
             l_x = 2& \qquad\text{and}\qquad l_y=2\com \nonumber\\
@@ -243,9 +249,7 @@ Q(x,y) = q(y)\,\sin\left(2\pi k\,x/l_x\right)\, \text{where}\qquad q_0\,\ee^{-a(
 
 
         \label{separable_soln}
-        We integrate equation \eqref{f_eqn} using with different source strengths $q_0=-0.04,0,0.04$. With such a coarse resolution in $y$ the stability criterion \eqref{stability_rk3}  gives a very-large time-step $\sim 2$. To ensure good accuracy we choose $\Delta t = 1.$. It takes about 130 iterations for the solution to converge to steady-state within machine precision. The solution for $f$ is then multiplied by the sine function to form the solution for $T$ \eqref{separable_soln}. A slice of the solutions with different source strengths is shown in Figure \ref{soln_rk3}. The magnitude of the periodic solution in $x$ is larger for the $q_0=0.04$ case. For the  sink (negative source) case, the solution has smaller magnitude and opposite phase to the source. The solution with no source has also small magnitude compared to the source solution.
-
-
+        We integrate equation \eqref{f_eqn} using with different source strengths $q_0=-0.04,0,0.04$. With such a coarse resolution in $y$ the stability criterion \eqref{stability_rk3}  gives a very-large time-step $\sim 2$. To ensure good accuracy we choose $\Delta t = 1.$. It takes about 130 iterations for the solution to converge to steady-state within machine precision. The solution for $f$ is then multiplied by the sine function to form the solution for $T$ \eqref{separable_soln}. A slice of the solutions with different source strengths is shown in Figure \ref{soln_rk3}. The magnitude of the periodic solution in $x$ is larger for the $q_0=0.04$ case. For the  sink (negative source) case, the solution has smaller magnitude and opposite phase to the source case. The solution with no source has also small magnitude compared to the source solution.
 
         \begin{figure}[p]
         \centerline{\epsfig{file=T_rk3.eps,width=12cm}}
@@ -283,7 +287,7 @@ Q(x,y) = q(y)\,\sin\left(2\pi k\,x/l_x\right)\, \text{where}\qquad q_0\,\ee^{-a(
         \end{align}
 
 
-        To implement the Crank-Nicolson solver we first code a simple function to solve the tridiagonal linear system using Thomas' algorithm. The system of ODEs is then step forward until the solution converges to steady states within machine precision. The Crank-Nicolson scheme is unconditionally stable. To ensure good accuracy we set $\Delta t = 1$. The solution converges after 230 iterations. Notice that this is the same number of iterations as the RK3 scheme. With better resolution in $y$, however, the RK3 scheme would be constrained to smaller time-steps (proportional to $\Delta y^2$) while the CN would be stable stable.  Figure \ref{soln_cn} show a slice of the steady-state solution at $y=l_y/2$. The solution is virtually the same as the RK3 solution discussed above.
+        To implement the Crank-Nicolson solver we first code a simple function to solve the tridiagonal linear system using Thomas' algorithm (Matrix set-up and code details in the Appendix). The system of ODEs is then step forward until the solution converges to steady states within machine precision. The Crank-Nicolson scheme is unconditionally stable. To ensure good accuracy we set $\Delta t = 1$. The solution converges after 230 iterations. Notice that this is the same number of iterations as the RK3 scheme.  Hence with coarse resolution in $y$, the RK3 schemme is preferable because it is third-order accurate as opposed to second-order accurace CN. With better resolution in $y$, however, the RK3 scheme would be constrained to smaller time-steps (proportional to $\Delta y^2$) while the CN would be stable stable with $\Delta t =1$.  Figure \ref{soln_cn} shows a slice of the steady-state solution at $y=l_y/2$. The solution is virtually the same computational cost as the RK3 solution discussed above. 
 
 
         \begin{figure}[p]
@@ -293,19 +297,167 @@ Q(x,y) = q(y)\,\sin\left(2\pi k\,x/l_x\right)\, \text{where}\qquad q_0\,\ee^{-a(
         \end{figure}
 
 
+
+    \item We repeat the CN calculations in (c) with $\alpha = 0.0001$. First, to better understand the effect of the size of $\alpha$ on the convergence of the solution we consider a simplified version of \eqref{f_eqn} assuming that the horizontal scale of variation of $f$ in x is much smaller than the scale of variation in $y$, $\delta y$. That is we assume
+
+        \beq
+            k >> \frac{1}{\delta y}\per
+        \eeq
+        The general solution of this simplified equation has the  form
+
+        \beq
+            \label{general_soln}
+            f_0(y,t) = f_0^H + f_0^I\per
+        \eeq
+        The homogeneous part $f_0^H$ corresponds to the transient solution, and it has the form
+
+        \beq
+        f_0^H(t) = C\,\ee^{-\tfrac{4\pi^2k^2}{l_x^2}\,\alpha t}\com
+        \eeq
+        where $C$ is a constant. The transient solution decays on a time-scale inversely proportional to $\alpha$. For fixed $k$ and $l_x$, reducing $\alpha$ implies that the steady state solution will be achieved on longer time-scales. Thus we expect that the convergence of the solution to steady-state will be about 100 slower  with $\alpha=0.0001$ than in previous experiments with $\alpha=0.01$. 
+
+        Indeed it takes about 21863 iterations for the solution to converge to steady-state within machine double precision. Because we used the same time-step ($\Delta t =1$), this is about 100 slower than the previous calculations with a diffusion coefficient 100 bigger $\alpha = 0.01$. The physical interpretation is that it takes longer for source and boundary conditions to equilibrate by diffusion. Because the steady solution is inversely proportional to the diffusion coefficient the solution with non-zero source has also larger magnitude than the one with $\alpha=0.01$. 
+
+        \begin{figure}[p]
+        \centerline{\epsfig{file=Tcn2_y1.eps,width=9cm}\\
+        \epsfig{file=Tcn2_green_y1.eps,width=9cm}}
+        \caption{Slice of the CN $\alpha=0.0001$ numerical solution at $y=l_y/2$ for three different source strengths. The figure on the right panel shows the $q_0=0$ case in a zoomed-in $y-$axis.}
+        \label{soln_cn}
+        \end{figure}
+
+
+    \item We refine the grid to explore the grid convergence. We focus on the solution using the CN scheme because, as discussed above, the solution using RK3 would become computationally costly for small $\Delta y$. In particular we perform experiments with different number of points in the $y-$direction $N = [5,10,50,100,200,300,400,500]$ with $\alpha = 0.01$ and $q_0=-0.04,0,0.04$.  The number of iterations necessary for convergence varies significantly from $230$ for $N=5$ to $N=17033$ for $N=500$ (Table 1).  The convergence is relatively fast: the solution with $N=50$ is visually indistinguishable from the solution with $N=500$. To assess the accuracy of  the discretization in the $y-$direction we can compare the solution with $q_0$ to the exact solution \eqref{f_bcc}. In particular we compute the relative error at $y=l_y/2$
+
+        \beq
+            \text{Error} = \frac{|f_{exact}(l_y/2)-f_{CN}(l_y/2)|}{|f_{exact}(l_y/2)|}\per
+        \eeq
+        Figure \ref{error_cn} shows the relative error at $y=l_y/2$ as a function of number of points in the $y-$direction. Clearly, the error decreases with $N$, following a $N^{-2}$ power law. This analysis thus validates that the scheme used for spatial discretization in the $y-$direction is second-order accurate.
+
+
+    \begin{table}\label{iterations_conv}    
+        \begin{center}
+        \caption{Number of iterations necessary for convergence to steady-state of numerical solution using a CN scheme to march forward in time. The diffusion coefficient was $\alpha=0.01$. N is the number of points used for spatial discretization in the $y-$direction.}
+        \begin{tabular}{ l |  c c c }\\
+            $q_0$ & -0.04 & 0 & 0.04\\ \hline
+            N & & & \\
+             5 & 223 & 229 & 227\\
+             10 & 225 & 229 & 231\\
+             50 & 226 & 230 & 232\\
+             100 & 701 & 701 & 701\\
+             200 & 2765 & 2768 & 2766\\
+             300 & 6184 & 6195 & 6176\\
+             400 & 10949 & 10971 & 10963\\
+             500 & 17168& 17006 & 17033 \\
+        \end{tabular}
+    \end{center}
+        \end{table}
+
+
+        \begin{figure}[h]
+           \centerline{\epsfig{file=error_cn.eps,width=12cm}}
+           \caption{The relative error at $y=l_y/2$ for sourceless ($q_0=0$) solution. For reference the $N^{-2}$ curve is plotted.}
+        \label{error_cn}
+        \end{figure}
+
+        \begin{figure}[p]
+        \centerline{\epsfig{file=f_various_N_a10_q0-4.eps,width=9cm}\\
+        \epsfig{file=T_various_N_a10_q0-4.eps,width=9cm}}
+        \caption{(Left panel) Steady-state solution for $y-$structure, $f$, and (right panel) slice of the solution for $T$ at $y=l_y/2$ for different resolutions in the $y-$direction. The source strength is $q_0=-0.04$.}
+        \label{soln_cn_various_N_1}
+        \end{figure}
+
+       \begin{figure}[p]
+        \centerline{\epsfig{file=f_various_N_a10_q00.eps,width=9cm}\\
+        \epsfig{file=T_various_N_a10_q00.eps,width=9cm}}
+        \caption{(Left panel) Steady-state solution for $y-$structure, $f$, and (right panel) slice of the solution for $T$ at $y=l_y/2$ for different resolutions in the $y-$direction.The source strength is $q_0=0$.}
+        \label{soln_cn_various_N_2}
+        \end{figure}
+
+       \begin{figure}[p]
+        \centerline{\epsfig{file=f_various_N_a10_q04.eps,width=9cm}\\
+        \epsfig{file=T_various_N_a10_q04.eps,width=9cm}}
+        \caption{(Left panel) Steady-state solution for $y-$structure, $f$, and (right panel) slice of the solution for $T$ at $y=l_y/2$ for different resolutions in the $y-$direction.The source strength is $q_0=0.04$.}
+        \label{soln_cn_various_N_2}
+        \end{figure}
+
+
+
+
 \end{enumerate}
 
-%\maketitle
-%\begin{figure}[p]
-%\centerline{\epsfig{file=sin_four.png,width=12cm}}
-%\caption{Initial guess and equilibrated solution for Laplace's equation in a square box. The initial guess is $\phi_0 = \sin 4\pi x + \sin 4\pi y$.}
-%    \label{sin_four}
-%\end{figure}
+
+\newpage
+\section*{Appendix: Matrix set-up for the Crank-Nicolson solution}
+
+Application of the Crank-Nicolson scheme to march equation for $f$ in time leads to a simple tridiagonal system \eqref{tridiag_general}-\eqref{tridiag_general_1}-\eqref{tridiag_general_N1}. We can write that system in matrix form 
+
+\beq
+\label{lin_system}
+\mathsf{T}\,\mathsf{f}^{n+1} = \mathsf{B\,}\mathsf{f}^{n} + \mathsf{b} + \mathsf{q}\com
+\eeq
+where $\mathsf{f} = [f_1,f_2,\ldots,f_N-2,f_N-1]$, $\mathsf{b}= [4\Delta\beta,0,\ldots,0]$, and $\mathsf{q} = [q_1,q_2,\ldots,q_N-2,q_N-1]$, and
+
+\begin{equation} \label{matrixT}
+    \mathsf{T} = \left[ \begin{matrix}
+            \left(1 + \Delta t \beta + \tfrac{\gamma \Delta t}{2}\right) & -\tfrac{\Delta t}{2}\beta & &0\\
+            -\tfrac{\Delta t}{2}\beta& \ddots & \ddots &  \vdots\\
+                                     & \ddots & \left(1 + \Delta t \beta + \tfrac{\gamma \Delta t}{2}\right)  &-\tfrac{\Delta t}{2}\beta \\
+                              0       &\ldots &-\tfrac{\Delta t}{2}\beta &\left(1 + \Delta t \beta + \tfrac{\gamma \Delta t}{2}\right)  \\
+    \end{matrix} \right]\com
+\end{equation}
+and
+\begin{equation} \label{matrixB}
+    \mathsf{B} = \left[ \begin{matrix}
+            \left(1 - \Delta t \beta - \tfrac{\gamma \Delta t}{2}\right) & \tfrac{\Delta t}{2}\beta & &0\\
+            \tfrac{\Delta t}{2}\beta& \ddots & \ddots  & \vdots\\
+                                     & \ddots & \left(1 + \Delta t \beta + \tfrac{\gamma \Delta t}{2}\right)  &\tfrac{\Delta t}{2}\beta \\
+                              0       &\ldots &\tfrac{\Delta t}{2}\beta &\left(1 - \Delta t \beta - \tfrac{\gamma \Delta t}{2}\right)  \\
+    \end{matrix} \right]\per
+\end{equation}
+
+Notice that we have represented the first part of the  know right-hand-side as a matrix multiplication but in practice there is no need to store all those zeros and perform the matrix multiplication. Instead, we vectorized the calculation in \texttt{python}. The linear system  \eqref{lin_system} is efficiently solved by implementing the Thomas algorithm in \texttt{python}.
 
 
+\begin{lstlisting}[language=python]
+def Thomas(a,b,c,s):
+    ''' it solves T x = s where T is a tridiagonal matrix
+            with constants coefficients
 
-
-
+            Inputs
+            ------------------------------------------
+            a :: main diagonal coefficients
+            b :: lower diagonals coefficients
+            c :: upper diagonals coefficients
+            s :: righ-hand side (input array)
+            
+            Outputs
+            ------------------------------------------
+            x :: solution array
+    '''
+    
+    assert s.size == a.size, "s and a must have the same length"
+    
+    n = s.size
+    
+    rhs = s.copy()
+    f = a.copy()                # assemble arrays: main diagonal
+    e = b.copy()                #                  lower diagonal
+    g = c.copy()                #                  upper diagonal
+    x = np.empty(n)             #                  solution
+                        
+    for i in range(1,n):
+        #e[i-1] = e[i-1]/f[i-1]  # compute and store the "factor"
+        factor = e[i-1]/f[i-1]   # perform Gaussian elimination
+        f[i] -=  factor*g[i-1]
+        rhs[i] -=  factor*rhs[i-1]
+        del factor
+    
+    x[-1] = rhs[-1]/f[-1]   # backward substitution to solve for x
+    for i in range(n-2,-1,-1):
+        x[i] = (rhs[i]-g[i]*x[i+1])/f[i]
+        
+    return x
+\end{lstlisting}
 
 \end{document}
 
