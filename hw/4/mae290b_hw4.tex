@@ -1,5 +1,6 @@
 \documentclass[11pt]{article}
 
+
 %% WRY has commented out some unused packages %%
 %% If needed, activate these by uncommenting
 \usepackage{geometry}                % See geometry.pdf to learn the layout options. There are lots.
@@ -118,7 +119,7 @@ showstringspaces=false            %
 }
 
 
-\title{MAE290B, Homework Assignment 3\footnote{This homework assignment was coded and developed using a Jupyter Notebook. An html version of the notebook is available at \href{https://github.com/crocha700/mae290b}{https://github.com/crocha700/mae290b}}}
+\title{MAE290B, Homework Assignment 4\footnote{This homework assignment was coded and developed using a Jupyter Notebook. An html version of the notebook is available at \href{https://github.com/crocha700/mae290b}{https://github.com/crocha700/mae290b}}}
 \author{Cesar B Rocha}
 %\date{October 16th, 2014}                                           
 \date{\today}
@@ -203,21 +204,21 @@ showstringspaces=false            %
             \label{delta_defn}
             \delta \defn \frac{\alpha\Delta t}{2\Delta x^2}\per
         \eeq
-        At the node closest to the left boundary ($i=1$) we have
+        At the node closest to the left boundary ($i=2$) we have
         \beq
             \label{disc_left_boundary}
-            -\delta\,T_{2}^{n+1} + \left(1+2\delta\right)T_1^{n+1} =   \delta\,T_{2}^{n+1} + \left(1-2\delta\right)T_1^{n+1} + 2\delta\,\mathcal{T}_1\com
-        \eeq   
-        where we implemented the Dirichlet boundary condition $T\left(x=0,t\right) = \mathcal{T}_1$ (to avoid confusion with the temperature at note $i=1$, we use a caligraphic ``T'' to denote the know value). As for the Neumann boundary condition at $x=1$ we use a one-sided second-order scheme. In the $M$'th node we have
+            -\delta\,T_{3}^{n+1} + \left(1+2\delta\right)T_3^{n+1} =   \delta\,T_{3}^{n+1} + \left(1-2\delta\right)T_2^{n+1} + 2\delta\,T_1\com
+            \eeq  ( 
+        where we implemented the Dirichlet boundary condition $T\left(x=0,t\right) = T_1$. As for the Neumann boundary condition at $x=1$ we use a one-sided second-order scheme. In the $M$'th node we have
         \beq
             \label{bc_rhs}
-            (3-2 c\Delta x^2)T^{n+1}_M - 4T^{n+1}_{M-1}+T^{n+1}_{N-2} = 0
+            (3-2 c\Delta x^2)T^{n+1}_M - 4T^{n+1}_{M-1}+T^{n+1}_{M-2} = 0
         \eeq
-    We then have a $M \times M$ system of equations to solve:
+        We then have a $(M-1) \times (M-1)$ system of equations to solve:
     \beq
     \mathsf{A}\, \mathsf{T}^{n+1} = \mathsf{b}\com
     \eeq
-    where $\mathsf{T}^{n+1} = \left[T_1,T_2,\ldots,T_{N-1},T_N\right]^{n+1}$, and
+    where $\mathsf{T}^{n+1} = \left[T_2,\ldots,T_{M-1}\right]^{n+1}$, and
 
 
 \begin{equation} \label{matrixM}
@@ -238,14 +239,14 @@ Notice that using a second-oder scheme for the Neumann boundary condition at $x=
         0 & & \delta & (1-2\delta)&0\\
 0 & \ldots&  & 0 &0\end{matrix} \right]
  \left[ \begin{matrix}
-         T_1\\
          T_2\\
+         T_3\\
          \vdots\\
          T_{N-1}\\
          T_N
  \end{matrix} \right]^{n} +
  \left[ \begin{matrix}
-         2\delta \mathcal{T}_1\\
+         2\delta T_1\\
          0\\
          \vdots\\
          0\\
@@ -260,24 +261,22 @@ Notice that using a second-oder scheme for the Neumann boundary condition at $x=
         The system to solve is
 \begin{align} \label{matrixM}
     & \left[ \begin{matrix}
-            (1+2\delta) & -\delta & 0 & 0 & 0\\
-            -\delta & (1+2\delta)  & -\delta & 0 &0\\
-             0& -\delta & (1+2\delta)  & -\delta & 0\\
-              0&  0& -\delta & (1+2\delta)  & -\delta \\
-             0&  0& 1 & -4  & (3-50\,c) \\
+            (1+2\delta) & -\delta & 0 & 0 \\
+            -\delta & (1+2\delta)  & -\delta & 0\\
+             0& -\delta & (1+2\delta)  & -\delta \\
+             0&  1 & -4  & (3-50\,c) \\
            \end{matrix} \right]
            \left[ \begin{matrix}
-         T_1\\
          T_2\\
          T_3\\
          T_4\\
          T_5\\
  \end{matrix} \right]^{n+1}\\ &=
  \left[ \begin{matrix}
-         20\delta\,\Delta t \mathcal{T}_1 + (1 -2\delta)T_1 + \delta T_2 \\
-         \delta T_1+  (1 -2\delta)T_2 + \delta T_3\\
-         \delta T_2+  (1 -2\delta)T_3 +  \delta T_4\\
-         \delta T_3+  (1 -2\delta)T_4 + \ \delta T_5\\
+         20\delta \,T_1 + (1 -2\delta)T_2 + \delta T_3 \\
+         \delta T_2+  (1 -2\delta)T_3 + \delta T_4\\
+         \delta T_3+  (1 -2\delta)T_4 +  \delta T_5\\
+         0
  \end{matrix} \right]^n\per
 \end{align}
 
@@ -303,13 +302,13 @@ Notice that using a second-oder scheme for the Neumann boundary condition at $x=
         \beq
         \ep^{(k+1)} = \left(\mathsf{A_1}^{-1}\mathsf{A_2}\right)^n\ep^{(k)}\per
         \eeq
-        Thus by induction 
+        By induction 
         \beq
         \ep^{k} = \left(\mathsf{A_1}^{-1}\mathsf{A_2}\right)^k\ep^0\com
         \eeq
         and therefore
         \beq
-        ||\ep^{(k}|| = ||\left(\mathsf{A_1}^{-1}\mathsf{A_2}\right)^k\ep^0|| \leq ||\left(\mathsf{A_1}^{-1}\mathsf{A_2}\right)^n||\,\, ||\ep^0||\leq||\mathsf{A_1}^{-1}\mathsf{A_2}||^k\,\, ||\ep^0| \com
+    ||\ep^{(k}|| = ||\left(\mathsf{A_1}^{-1}\mathsf{A_2}\right)^k\ep^0|| \leq ||\left(\mathsf{A_1}^{-1}\mathsf{A_2}\right)^n||\,\, ||\ep^0||\leq||\mathsf{A_1}^{-1}\mathsf{A_2}||^k\,\, ||\ep^0|| \com
         \eeq
         where $|| \mathsf{\psi} ||$ denotes any norm of the vector $\mathsf{\psi}$, and the inequality follows from Chauchy-Schwartz. For the $L_2$-norm we have
         \beq
