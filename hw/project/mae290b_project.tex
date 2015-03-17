@@ -127,7 +127,7 @@ showstringspaces=false            %
 
 \section*{Abstract}
 
-We solve the two-dimensional diffusion equation with source in a square domain periodic in the $x-$direction, with particular focus on the steady-state solution. With coarse resolution in the $y-$direction there is no notable difference in performance between a third-order Runge-Kutta  and a Crank-Nicolson (CN) schemes for time marching. With higher resolution, however, the CN scheme requires much less iterations to converge because it is free of stability restrictions on the time-step. We show that decreasing the diffusion coefficient proportionally increases the time necessary to achieve steady-state. We verify that the spatial discretization scheme is second-order accurate by performing experiments with a hierarchy of finner grids in the $y-$direction and comparing the numerical solutions for the sourceless case ($q_0=0$) with the exact solution.
+We solve the two-dimensional diffusion equation with source in a square domain periodic in the $x-$direction, with particular focus on the steady-state solution. With coarse resolution in the $y-$direction there is no notable difference in performance between the explicit third-order Runge-Kutta scheme and the implicit Crank-Nicolson (CN) scheme for time marching. With higher resolution, however, the CN scheme requires much less iterations to converge because it is free of stability restrictions on the time-step. We show that decreasing the diffusion coefficient proportionally increases the time necessary to achieve steady-state. We verify that the spatial discretization scheme is second-order accurate by performing experiments with a hierarchy of finner grids in the $y-$direction and comparing the numerical solutions for the sourceless case ($q_0=0$) with the exact solution.
 
 \section*{Main text}
 
@@ -162,10 +162,10 @@ Q(x,y) = q(y)\,\sin\left(2\pi k\,x/l_x\right)\,,\, \text{where}\qquad q_0\,\ee^{
     \item Because \eqref{exact_eqn} is linear and the  boundary conditions and the source are periodic in $x$ the exact solution is separable in $x-(y,t)$:
 
         \beq
-        \label{separable_soln}
+        \label{separable}
         T(x,y,t) = \sin\left(2\pi\,k\,x/l_x\right)\,f(y,t).
         \eeq
-        On inserting \eqref{separable_soln} in \eqref{exact_eqn} we obtain an partial differential equation for $f$:
+        On inserting \eqref{separable} into the original partial differential equation (PDE) \eqref{exact_eqn} we obtain a PDE for $f$:
 
         \beq
         \label{f_eqn}
@@ -231,7 +231,7 @@ Q(x,y) = q(y)\,\sin\left(2\pi k\,x/l_x\right)\,,\, \text{where}\qquad q_0\,\ee^{
 
         The solution is integrated until it converges to steady state within machine double precision. 
         
-        Before we proceed with the calculations it is useful to the test the code developed. To do that we note that a simple exact solution to the steady version of \eqref{f_eqn}-\eqref{f_bc} is available:
+        Before we proceed with the calculations it is useful to the test the code developed. To do that we note that a simple exact solution to the sourceless steady version of \eqref{f_eqn}-\eqref{f_bc} is available:
 
         \beq
             \label{f_bcc}
@@ -239,7 +239,7 @@ Q(x,y) = q(y)\,\sin\left(2\pi k\,x/l_x\right)\,,\, \text{where}\qquad q_0\,\ee^{
         \eeq
 
 
-        Figure \ref{comp_exact} show a comparison of the exact solution, $f_e$, against the numerical one computed using RK3. Clearly the numerical solution converges to the correct solution. The error in the numerical solution, measured by the root-mean-square of the difference to the exact solution, is $\sim 0.008$. This error is essentially due to the spatial discretization in y-direction.
+        Figure \ref{comp_exact} shows a comparison of $f_e$ with the numerical solution computed using RK3. Clearly the numerical solution converges to the correct solution. The error in the numerical solution, measured by the root-mean-square of the difference to the exact solution, is $\sim 0.008$. This error is essentially due to the spatial discretization in y-direction.
 
         \begin{figure}[p]
         \centerline{\epsfig{file=f_rk3_exact.eps,width=12cm}}
@@ -249,7 +249,7 @@ Q(x,y) = q(y)\,\sin\left(2\pi k\,x/l_x\right)\,,\, \text{where}\qquad q_0\,\ee^{
 
 
         \label{separable_soln}
-        We integrate equation \eqref{f_eqn} using with different source strengths $q_0=-0.04,0,0.04$. With such a coarse resolution in $y$ the stability criterion \eqref{stability_rk3}  gives a very-large time-step $\sim 2$. To ensure good accuracy we choose $\Delta t = 1.$. It takes about 130 iterations for the solution to converge to steady-state within machine precision. The solution for $f$ is then multiplied by the sine function to form the solution for $T$ \eqref{separable_soln}. A slice of the solutions with different source strengths is shown in Figure \ref{soln_rk3}. The magnitude of the periodic solution in $x$ is larger for the $q_0=0.04$ case. For the  sink (negative source) case, the solution has smaller magnitude and opposite phase to the source case. The solution with no source has also small magnitude compared to the source solution.
+        We integrate equation \eqref{f_eqn} using with different source strengths $q_0=-0.04,0,0.04$. With such a coarse resolution in $y$ the stability criterion \eqref{stability_rk3}  gives a large time-step $\sim 2$. To ensure good accuracy we choose $\Delta t = 1.$. It takes about 230 iterations for the solution to converge to steady-state within machine double precision. The solution for $f$ is then multiplied by the sine function to form the solution for $T$ \eqref{separable}. A slice of the solutions with different source strengths is shown in Figure \ref{soln_rk3}. The magnitude of the periodic solution in $x$ is larger for the $q_0=0.04$ case. For the  sink (negative source) case, the solution has smaller magnitude and opposite phase to the source case. The solution with no source has also small magnitude compared to the source solution.
 
         \begin{figure}[p]
         \centerline{\epsfig{file=T_rk3.eps,width=12cm}}
@@ -287,7 +287,7 @@ Q(x,y) = q(y)\,\sin\left(2\pi k\,x/l_x\right)\,,\, \text{where}\qquad q_0\,\ee^{
         \end{align}
 
 
-        To implement the Crank-Nicolson solver we first code a simple function to solve the tridiagonal linear system using Thomas' algorithm (Matrix set-up and code details in the Appendix). The system of ODEs is then step forward until the solution converges to steady states within machine precision. The Crank-Nicolson scheme is unconditionally stable. To ensure good accuracy we set $\Delta t = 1$. The solution converges after 230 iterations. Notice that this is the same number of iterations as the RK3 scheme.  Hence with coarse resolution in $y$, the RK3 schemme is preferable because it is third-order accurate as opposed to second-order accurace CN. With better resolution in $y$, however, the RK3 scheme would be constrained to smaller time-steps (proportional to $\Delta y^2$) while the CN would be stable stable with $\Delta t =1$.  Figure \ref{soln_cn} shows a slice of the steady-state solution at $y=l_y/2$. The solution is virtually the same computational cost as the RK3 solution discussed above. 
+        To implement the Crank-Nicolson solver we first code a simple function to solve the tridiagonal linear system using Thomas' algorithm (Matrix set-up and code details in the Appendix). The system of ODEs is then marched forward until the solution converges to steady states within machine double precision. The Crank-Nicolson scheme is unconditionally stable. To ensure good accuracy we set $\Delta t = 1$. The solution converges after 230 iterations. Notice that this is the same number of iterations as the RK3 scheme.  Hence with coarse resolution in $y$, the RK3 schemme is preferable because it is third-order accurate as opposed to second-order accurace CN. With better resolution in $y$, however, the RK3 scheme would be constrained to smaller time-steps (proportional to $\Delta y^2$) while the CN would be  stable for an arbitrarily large time-step.  Figure \ref{soln_cn} shows a slice of the steady-state solution at $y=l_y/2$. The solution is virtually the same computational cost as the RK3 solution discussed above. 
 
 
         \begin{figure}[p]
@@ -298,7 +298,7 @@ Q(x,y) = q(y)\,\sin\left(2\pi k\,x/l_x\right)\,,\, \text{where}\qquad q_0\,\ee^{
 
 
 
-    \item We repeat the CN calculations in (c) with $\alpha = 0.0001$. First, to better understand the effect of the size of $\alpha$ on the convergence of the solution we consider a simplified version of \eqref{f_eqn} assuming that the horizontal scale of variation of $f$ in x is much smaller than the scale of variation in $y$, $\delta y$. That is we assume
+    \item We repeat the CN calculations in (c) with $\alpha = 0.0001$. First, to better understand the effect of the size of $\alpha$ on the convergence of the solution we consider a simplified version of \eqref{f_eqn} assuming that the horizontal scale of variation of $f$ in x is much smaller than the scale of variation in $y$, $\delta y$, i.e.~ 
 
         \beq
             k >> \frac{1}{\delta y}\per
@@ -329,9 +329,9 @@ Q(x,y) = q(y)\,\sin\left(2\pi k\,x/l_x\right)\,,\, \text{where}\qquad q_0\,\ee^{
     \item We refine the grid to explore the grid convergence. We focus on the solution using the CN scheme because, as discussed above, the solution using RK3 would become computationally costly for small $\Delta y$. In particular we perform experiments with different number of points in the $y-$direction $N = [5,10,50,100,200,300,400,500]$ with $\alpha = 0.01$ and $q_0=-0.04,0,0.04$.  The number of iterations necessary for convergence varies significantly from $230$ for $N=5$ to $N=17033$ for $N=500$ (Table 1).  The convergence is relatively fast: the solution with $N=50$ is visually indistinguishable from the solution with $N=500$. To assess the accuracy of  the discretization in the $y-$direction we can compare the solution with $q_0$ to the exact solution \eqref{f_bcc}. In particular we compute the relative error at $y=l_y/2$
 
         \beq
-            \text{Error} = \frac{|f_{exact}(l_y/2)-f_{CN}(l_y/2)|}{|f_{exact}(l_y/2)|}\per
+            \text{Error} = \frac{|f_{e}(l_y/2)-f_{CN}(l_y/2)|}{|f_{e}(l_y/2)|}\per
         \eeq
-        Figure \ref{error_cn} shows the relative error at $y=l_y/2$ as a function of number of points in the $y-$direction. Clearly, the error decreases with $N$, following a $N^{-2}$ power law. This analysis thus validates that the scheme used for spatial discretization in the $y-$direction is second-order accurate.
+        Figure \ref{error_cn} shows the relative error at $y=l_y/2$ as a function of number of points in the $y-$direction. Clearly, the error scales as $N^{-2}$. Thus, this analysis verifies that the scheme used for spatial discretization in the $y-$direction is second-order accurate.
 
 
     \begin{table}\label{iterations_conv}    
@@ -387,7 +387,7 @@ Q(x,y) = q(y)\,\sin\left(2\pi k\,x/l_x\right)\,,\, \text{where}\qquad q_0\,\ee^{
 
 
 \newpage
-\section*{Appendix: Matrix set-up for the Crank-Nicolson solution}
+\section*{Appendix: Matrix set-up for the solution using Crank-Nicolson}
 
 Application of the Crank-Nicolson scheme to march equation for $f$ in time leads to a simple tridiagonal system \eqref{tridiag_general}-\eqref{tridiag_general_1}-\eqref{tridiag_general_N1}. We can write that system in matrix form 
 
